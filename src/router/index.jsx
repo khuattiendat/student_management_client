@@ -12,6 +12,10 @@ import Dashboard from "../pages/admin/Dashboard";
 import Forbidden from "../pages/Forbidden";
 import NotFound from "../pages/NotFound";
 import { ROLES } from "../utils/constants";
+import ListBranch from "../pages/admin/branch/list";
+import ListTeacher from "../pages/admin/teacher/list";
+import ListClass from "../pages/admin/class/list";
+import ListPackage from "../pages/admin/package/list";
 
 const router = createBrowserRouter([
   {
@@ -22,11 +26,30 @@ const router = createBrowserRouter([
         element: <AdminLayout />,
         children: [
           { index: true, element: <Navigate to="/dashboard" replace /> },
-          { path: "dashboard", element: <Dashboard /> },
           {
-            path: "admin",
+            path: "dashboard",
             element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
             children: [{ index: true, element: <Dashboard /> }],
+          },
+          {
+            path: "branches",
+            element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
+            children: [{ index: true, element: <ListBranch /> }],
+          },
+          {
+            path: "teachers",
+            element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
+            children: [{ index: true, element: <ListTeacher /> }],
+          },
+          {
+            path: "classes",
+            element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
+            children: [{ index: true, element: <ListClass /> }],
+          },
+          {
+            path: "packages",
+            element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
+            children: [{ index: true, element: <ListPackage /> }],
           },
           {
             path: "students",

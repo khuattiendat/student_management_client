@@ -7,8 +7,13 @@ const authService = {
 
   getProfile: () => axiosInstance.get("/auth/profile"),
 
+  updateProfile: (data) => axiosInstance.put("/auth/update-profile", data),
+
   refreshToken: (refreshToken) =>
     axiosInstance.post("/auth/refresh", { refreshToken }),
+
+  changePassword: (data) => axiosInstance.post("/auth/change-password", data),
+  register: (data) => axiosInstance.post("/auth/register", data),
 };
 
 export default authService;

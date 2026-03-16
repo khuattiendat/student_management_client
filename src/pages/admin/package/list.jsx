@@ -1,0 +1,130 @@
+import { useState } from "react";
+import { Select, Space, Table, Button, Typography } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import InputSearch from "../../../components/common/InputSearch";
+import { usePackageList } from "./usePackageList";
+import { buildColumns } from "./_columns";
+import PackageFormModal from "./PackageFormModal";
+
+const { Title } = Typography;
+
+const typeOptions = [
+  { label: "Tất cả loại", value: "" },
+  { label: "Combo buổi", value: "combo" },
+  { label: "Khóa học", value: "course" },
+];
+
+const ListPackage = () => {
+  const {
+    items,
+    total,
+    loading,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    search,
+    setSearch,
+    type,
+    setType,
+    fetchData,
+    handleDelete,
+  } = usePackageList();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
+
+  const handleSearch = (keyword) => {
+    setPage(1);
+    setSearch(keyword || null);
+  };
+
+  const openCreate = () => {
+    setEditing(null);
+    setModalOpen(true);
+  };
+
+  const openEdit = (record) => {
+    setEditing(record);
+    setModalOpen(true);
+  };
+
+  const handleSaved = ({ created }) => {
+    if (created) {
+      if (page === 1) fetchData();
+      else setPage(1);
+    } else {
+      fetchData();
+    }
+  };
+
+  const columns = buildColumns({
+    page,
+    limit,
+    onEdit: openEdit,
+    onDelete: handleDelete,
+  });
+
+  return (
+    <>
+      <div className="mb-4 flex items-center justify-between">
+        <Title level={2} className="mb-0!">
+          Danh sách gói học
+        </Title>
+        <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+          Thêm mới
+        </Button>
+      </div>
+
+      <div className="mb-4">
+        <Space wrap size="middle">
+          <InputSearch
+            value={search ?? ""}
+            onSearch={handleSearch}
+            placeholder="Tìm theo tên gói..."
+            className="max-w-xs"
+          />
+          <Select
+            value={type ?? ""}
+            options={typeOptions}
+            onChange={(value) => {
+              setPage(1);
+              setType(value || null);
+            }}
+            className="w-48"
+          />
+        </Space>
+      </div>
+
+      <Table
+        rowKey="id"
+        dataSource={items}
+        columns={columns}
+        loading={loading}
+        pagination={{
+          current: page,
+          pageSize: limit,
+          total,
+          showSizeChanger: true,
+          showTotal: (t) => `Tổng ${t} gói học`,
+          pageSizeOptions: ["10", "20", "50"],
+          onChange: (p, l) => {
+            setPage(p);
+            setLimit(l);
+          },
+        }}
+        bordered
+        size="middle"
+      />
+
+      <PackageFormModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        editing={editing}
+        onSaved={handleSaved}
+      />
+    </>
+  );
+};
+
+export default ListPackage;

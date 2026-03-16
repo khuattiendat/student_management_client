@@ -12,6 +12,7 @@ const useAuthStore = create(
         set({ user, accessToken, refreshToken }),
 
       logout: () => set({ user: null, accessToken: null, refreshToken: null }),
+      setUser: (user) => set({ user }),
 
       setTokens: (accessToken, refreshToken) =>
         set((prev) => ({

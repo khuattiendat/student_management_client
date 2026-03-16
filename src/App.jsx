@@ -1,4 +1,5 @@
 import { ConfigProvider, App as AntdApp } from "antd";
+import { SWRConfig } from "swr";
 import AppRouter from "./router";
 
 const App = () => (
@@ -24,9 +25,17 @@ const App = () => (
       },
     }}
   >
-    <AntdApp>
-      <AppRouter />
-    </AntdApp>
+    <SWRConfig
+      value={{
+        revalidateOnFocus: false,
+        shouldRetryOnError: false,
+        dedupingInterval: 2000,
+      }}
+    >
+      <AntdApp>
+        <AppRouter />
+      </AntdApp>
+    </SWRConfig>
   </ConfigProvider>
 );
 

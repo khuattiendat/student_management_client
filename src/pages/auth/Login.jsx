@@ -22,7 +22,11 @@ const Login = () => {
       message.success("Đăng nhập thành công!");
       navigate(from, { replace: true });
     } catch (err) {
-      message.error(err?.message || "Email hoặc mật khẩu không đúng");
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        "Tên đăng nhập hoặc mật khẩu không đúng";
+      message.error(errorMessage);
     }
   };
 
