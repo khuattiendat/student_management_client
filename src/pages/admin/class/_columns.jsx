@@ -1,5 +1,6 @@
 import { Button, Popconfirm, Space, Tag } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 
 const statusColors = {
   active: "green",
@@ -9,11 +10,22 @@ const statusColors = {
 const statusLabels = {
   active: "Hoạt động",
   inactive: "Ngừng hoạt động",
+  completed: "Đã hoàn thành",
 };
 
-export const buildColumns = ({ page, limit, onEdit, onDelete }) => [
+const typeColors = {
+  general: "purple",
+  certificate: "blue",
+};
+
+const typeLabels = {
+  general: "Phổ thông",
+  certificate: "Chứng chỉ",
+};
+
+export const buildColumns = ({ page, limit, onEdit, onDelete, canManage }) => [
   {
-    title: "ID",
+    title: "STT",
     width: 60,
     align: "center",
     render: (_, __, index) => (page - 1) * limit + index + 1,
@@ -28,6 +40,38 @@ export const buildColumns = ({ page, limit, onEdit, onDelete }) => [
     dataIndex: "branch",
     key: "branch",
     render: (branch) => branch?.name || "—",
+  },
+  {
+    title: "Giáo viên",
+    dataIndex: "teacher",
+    key: "teacher",
+    render: (teacher) => teacher?.name || "—",
+  },
+  {
+    title: "Gói học",
+    dataIndex: "package",
+    key: "package",
+    render: (pkg) => pkg?.name || "—",
+  },
+  {
+    title: "Loại",
+    dataIndex: "type",
+    key: "type",
+    render: (type) => (
+      <Tag color={typeColors[type] ?? "default"}>{typeLabels[type] || "—"}</Tag>
+    ),
+  },
+  {
+    title: "Ngày bắt đầu",
+    dataIndex: "startDate",
+    key: "startDate",
+    render: (value) => (value ? dayjs(value).format("DD/MM/YYYY") : "—"),
+  },
+  {
+    title: "Học viên",
+    dataIndex: "students",
+    key: "students",
+    render: (students = []) => students.length,
   },
   {
     title: "Trạng thái",
@@ -50,24 +94,27 @@ export const buildColumns = ({ page, limit, onEdit, onDelete }) => [
     key: "action",
     width: 120,
     align: "center",
-    render: (_, record) => (
-      <Space>
-        <Button
-          type="text"
-          icon={<EditOutlined />}
-          onClick={() => onEdit(record)}
-        />
-        <Popconfirm
-          title="Xác nhận xóa"
-          description={`Bạn có chắc muốn xóa lớp "${record.name}"?`}
-          okText="Xóa"
-          cancelText="Hủy"
-          okButtonProps={{ danger: true }}
-          onConfirm={() => onDelete(record.id)}
-        >
-          <Button type="text" danger icon={<DeleteOutlined />} />
-        </Popconfirm>
-      </Space>
-    ),
+    render: (_, record) =>
+      canManage ? (
+        <Space>
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => onEdit(record)}
+          />
+          <Popconfirm
+            title="Xác nhận xóa"
+            description={`Bạn có chắc muốn xóa lớp "${record.name}"?`}
+            okText="Xóa"
+            cancelText="Hủy"
+            okButtonProps={{ danger: true }}
+            onConfirm={() => onDelete(record.id)}
+          >
+            <Button type="text" danger icon={<DeleteOutlined />} />
+          </Popconfirm>
+        </Space>
+      ) : (
+        "—"
+      ),
   },
 ];

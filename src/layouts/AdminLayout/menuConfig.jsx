@@ -5,6 +5,7 @@ import {
   ReadOutlined,
   BookOutlined,
   CalendarOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 
 export const buildSidebarMenuItems = (branches = []) => [
@@ -32,6 +33,11 @@ export const buildSidebarMenuItems = (branches = []) => [
     key: "/packages",
     icon: <BookOutlined />,
     label: "Quản lý gói học",
+  },
+  {
+    key: "/students",
+    icon: <UserOutlined />,
+    label: "Quản lý học viên",
   },
   {
     key: "sessions-group",

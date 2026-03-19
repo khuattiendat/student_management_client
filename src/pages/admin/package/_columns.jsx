@@ -2,13 +2,13 @@ import { Button, Popconfirm, Space, Tag } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 const typeColors = {
-  combo: "blue",
-  course: "purple",
+  certificate: "blue",
+  general: "purple",
 };
 
 const typeLabels = {
-  combo: "Combo buổi",
-  course: "Khóa học",
+  certificate: "Gói chứng chỉ",
+  general: "Gói phổ thông",
 };
 
 const formatPrice = (value) =>
@@ -43,19 +43,9 @@ export const buildColumns = ({ page, limit, onEdit, onDelete }) => [
     render: (value) => formatPrice(value),
   },
   {
-    title: "Số buổi / Thời hạn",
-    key: "detail",
-    render: (_, record) => {
-      if (record.type === "combo") {
-        return `${record.totalSessions} buổi`;
-      }
-      if (record.startDate && record.endDate) {
-        const start = new Date(record.startDate).toLocaleDateString("vi-VN");
-        const end = new Date(record.endDate).toLocaleDateString("vi-VN");
-        return `${start} – ${end}`;
-      }
-      return "—";
-    },
+    title: "Số buổi",
+    key: "totalSessions",
+    dataIndex: "totalSessions",
   },
   {
     title: "Ngày tạo",

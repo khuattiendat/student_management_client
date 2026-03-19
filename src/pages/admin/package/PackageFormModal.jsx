@@ -13,27 +13,22 @@ import dayjs from "dayjs";
 import packageService from "../../../services/packageService";
 
 const typeOptions = [
-  { label: "Combo buổi", value: "combo" },
-  { label: "Khóa học", value: "course" },
+  { label: "Gói phổ thông ", value: "general" },
+  { label: "Gói chứng chỉ", value: "certificate" },
 ];
 
 const PackageFormModal = ({ open, onClose, editing, onSaved }) => {
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
-  const selectedType = Form.useWatch("type", form);
 
   useEffect(() => {
     if (open) {
       form.setFieldsValue({
         name: editing?.name ?? "",
-        type: editing?.type ?? "combo",
+        type: editing?.type ?? "general",
         price: editing?.price ? Number(editing.price) : undefined,
         totalSessions: editing?.totalSessions ?? undefined,
-        dateRange:
-          editing?.startDate && editing?.endDate
-            ? [dayjs(editing.startDate), dayjs(editing.endDate)]
-            : undefined,
       });
     }
   }, [open, editing, form]);
@@ -50,17 +45,8 @@ const PackageFormModal = ({ open, onClose, editing, onSaved }) => {
         name: values.name,
         type: values.type,
         price: values.price,
+        totalSessions: values.totalSessions,
       };
-
-      if (values.type === "combo") {
-        payload.totalSessions = values.totalSessions;
-        payload.startDate = null;
-        payload.endDate = null;
-      } else {
-        payload.startDate = values.dateRange?.[0]?.format("YYYY-MM-DD") ?? null;
-        payload.endDate = values.dateRange?.[1]?.format("YYYY-MM-DD") ?? null;
-        payload.totalSessions = null;
-      }
 
       if (editing) {
         await packageService.update(editing.id, payload);
@@ -110,13 +96,7 @@ const PackageFormModal = ({ open, onClose, editing, onSaved }) => {
           name="type"
           rules={[{ required: true, message: "Vui lòng chọn loại gói" }]}
         >
-          <Select
-            options={typeOptions}
-            placeholder="Chọn loại gói"
-            onChange={() => {
-              form.resetFields(["totalSessions", "dateRange"]);
-            }}
-          />
+          <Select options={typeOptions} placeholder="Chọn loại gói" />
         </Form.Item>
 
         <Form.Item
@@ -135,33 +115,13 @@ const PackageFormModal = ({ open, onClose, editing, onSaved }) => {
           />
         </Form.Item>
 
-        {selectedType === "combo" && (
-          <Form.Item
-            label="Số buổi học"
-            name="totalSessions"
-            rules={[{ required: true, message: "Vui lòng nhập số buổi" }]}
-          >
-            <InputNumber
-              className="!w-full"
-              min={1}
-              placeholder="Nhập số buổi"
-            />
-          </Form.Item>
-        )}
-
-        {selectedType === "course" && (
-          <Form.Item
-            label="Thời gian học"
-            name="dateRange"
-            rules={[{ required: true, message: "Vui lòng chọn thời gian học" }]}
-          >
-            <DatePicker.RangePicker
-              className="w-full"
-              format="DD/MM/YYYY"
-              placeholder={["Ngày bắt đầu", "Ngày kết thúc"]}
-            />
-          </Form.Item>
-        )}
+        <Form.Item
+          label="Số buổi học"
+          name="totalSessions"
+          rules={[{ required: true, message: "Vui lòng nhập số buổi" }]}
+        >
+          <InputNumber className="!w-full" min={1} placeholder="Nhập số buổi" />
+        </Form.Item>
 
         <div className="flex justify-end gap-2">
           <Button onClick={handleClose}>Hủy</Button>

@@ -4,31 +4,18 @@ import { PlusOutlined } from "@ant-design/icons";
 import useSWR from "swr";
 import InputSearch from "../../../components/common/InputSearch";
 import branchService from "../../../services/branchService";
-import teacherService from "../../../services/teacherService";
 import packageService from "../../../services/packageService";
-import studentService from "../../../services/studentService";
 import useAuthStore from "../../../store/authStore";
 import { ROLES } from "../../../utils/constants";
-import { useClassList } from "./useClassList";
+import { useStudentList } from "./useStudentList";
 import { buildColumns } from "./_columns";
-import ClassFormModal from "./ClassFormModal";
+import StudentFormModal from "./StudentFormModal";
+import RenewCourseModal from "./RenewCourseModal";
+import StudentAttendanceModal from "./StudentAttendanceModal";
 
 const { Title } = Typography;
 
-const statusOptions = [
-  { label: "Tất cả trạng thái", value: "" },
-  { label: "Hoạt động", value: "active" },
-  { label: "Ngừng hoạt động", value: "inactive" },
-  { label: "Đã hoàn thành", value: "completed" },
-];
-
-const typeOptions = [
-  { label: "Tất cả loại lớp", value: "" },
-  { label: "Lớp phổ thông", value: "general" },
-  { label: "Lớp chứng chỉ", value: "certificate" },
-];
-
-const ListClass = () => {
+const ListStudent = () => {
   const {
     items,
     total,
@@ -39,25 +26,19 @@ const ListClass = () => {
     setLimit,
     search,
     setSearch,
-    status,
-    setStatus,
     branchId,
     setBranchId,
-    teacherId,
-    setTeacherId,
     packageId,
     setPackageId,
-    type,
-    setType,
     fetchData,
     handleDelete,
-  } = useClassList();
+  } = useStudentList();
 
   const userRole = useAuthStore((s) => s.user?.role);
   const canManage = userRole === ROLES.ADMIN;
 
   const { data: branchOptions = [] } = useSWR(
-    ["class-branch-options"],
+    ["student-branch-options"],
     async () => {
       const response = await branchService.list({ page: 1, limit: 1000 });
       return (response?.data?.items ?? []).map((branch) => ({
@@ -67,50 +48,23 @@ const ListClass = () => {
     },
   );
 
-  const { data: teacherOptions = [] } = useSWR(
-    canManage ? ["class-teacher-options"] : null,
-    async () => {
-      const response = await teacherService.list({ page: 1, limit: 1000 });
-      return (response?.data?.items ?? []).map((teacher) => ({
-        label: teacher.name,
-        value: teacher.id,
-      }));
-    },
-  );
-
   const { data: packageOptions = [] } = useSWR(
-    ["class-package-options"],
+    ["student-package-options"],
     async () => {
       const response = await packageService.list({ page: 1, limit: 1000 });
       return (response?.data?.items ?? []).map((item) => ({
         label: item.name,
         value: item.id,
-        type: item.type,
       }));
     },
   );
-
-  const { data: studentOptions = [] } = useSWR(
-    canManage ? ["class-student-options"] : null,
-    async () => {
-      const response = await studentService.list({ page: 1, limit: 1000 });
-      return (response?.data?.items ?? []).map((student) => ({
-        label: `${student.name}${student.phone ? ` - ${student.phone}` : ""}`,
-        value: student.id,
-        name: student.name,
-        phone: student.phone,
-        branchName: student?.branch?.name,
-      }));
-    },
-  );
-
-  const allBranchOptions = [
-    { label: "Tất cả cơ sở", value: "" },
-    ...branchOptions,
-  ];
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [renewModalOpen, setRenewModalOpen] = useState(false);
+  const [renewingStudent, setRenewingStudent] = useState(null);
+  const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
+  const [attendanceStudent, setAttendanceStudent] = useState(null);
 
   const handleSearch = (keyword) => {
     setPage(1);
@@ -129,6 +83,12 @@ const ListClass = () => {
     setModalOpen(true);
   };
 
+  const openRenew = (record) => {
+    if (!canManage) return;
+    setRenewingStudent(record);
+    setRenewModalOpen(true);
+  };
+
   const handleSaved = ({ created }) => {
     if (created) {
       if (page === 1) fetchData();
@@ -138,11 +98,18 @@ const ListClass = () => {
     }
   };
 
+  const openAttendance = (record) => {
+    setAttendanceStudent(record);
+    setAttendanceModalOpen(true);
+  };
+
   const columns = buildColumns({
     page,
     limit,
     onEdit: openEdit,
+    onRenew: openRenew,
     onDelete: handleDelete,
+    onViewAttendances: openAttendance,
     canManage,
   });
 
@@ -150,7 +117,7 @@ const ListClass = () => {
     <>
       <div className="mb-4 flex items-center justify-between">
         <Title level={2} className="mb-0!">
-          Danh sách lớp học
+          Danh sách học viên
         </Title>
         {canManage ? (
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
@@ -164,45 +131,20 @@ const ListClass = () => {
           <InputSearch
             value={search ?? ""}
             onSearch={handleSearch}
-            placeholder="Tìm theo tên lớp..."
+            placeholder="Tìm theo tên hoặc số điện thoại..."
             className="max-w-xs"
           />
           <Select
             value={branchId ?? ""}
-            options={allBranchOptions}
+            options={[{ label: "Tất cả cơ sở", value: "" }, ...branchOptions]}
             onChange={(value) => {
               setPage(1);
               setBranchId(value || null);
             }}
-            className="w-48"
+            className="w-56"
             showSearch
             optionFilterProp="label"
           />
-          <Select
-            value={status ?? ""}
-            options={statusOptions}
-            onChange={(value) => {
-              setPage(1);
-              setStatus(value || null);
-            }}
-            className="w-48"
-          />
-          {canManage ? (
-            <Select
-              value={teacherId ?? ""}
-              options={[
-                { label: "Tất cả giáo viên", value: "" },
-                ...teacherOptions,
-              ]}
-              onChange={(value) => {
-                setPage(1);
-                setTeacherId(value || null);
-              }}
-              className="w-56"
-              showSearch
-              optionFilterProp="label"
-            />
-          ) : null}
           <Select
             value={packageId ?? ""}
             options={[
@@ -217,15 +159,6 @@ const ListClass = () => {
             showSearch
             optionFilterProp="label"
           />
-          <Select
-            value={type ?? ""}
-            options={typeOptions}
-            onChange={(value) => {
-              setPage(1);
-              setType(value || null);
-            }}
-            className="w-48"
-          />
         </Space>
       </div>
 
@@ -239,29 +172,48 @@ const ListClass = () => {
           pageSize: limit,
           total,
           showSizeChanger: true,
-          showTotal: (t) => `Tổng ${t} lớp học`,
+          showTotal: (value) => `Tổng ${value} học viên`,
           pageSizeOptions: ["10", "20", "50"],
-          onChange: (p, l) => {
-            setPage(p);
-            setLimit(l);
+          onChange: (nextPage, nextLimit) => {
+            setPage(nextPage);
+            setLimit(nextLimit);
           },
         }}
         bordered
         size="middle"
+        scroll={{ x: "max-content" }}
       />
 
-      <ClassFormModal
+      <StudentFormModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         editing={editing}
         onSaved={handleSaved}
         branchOptions={branchOptions}
-        teacherOptions={teacherOptions}
         packageOptions={packageOptions}
-        studentOptions={studentOptions}
+      />
+
+      <RenewCourseModal
+        open={renewModalOpen}
+        onClose={() => {
+          setRenewModalOpen(false);
+          setRenewingStudent(null);
+        }}
+        student={renewingStudent}
+        packageOptions={packageOptions}
+        onSaved={fetchData}
+      />
+
+      <StudentAttendanceModal
+        open={attendanceModalOpen}
+        onClose={() => {
+          setAttendanceModalOpen(false);
+          setAttendanceStudent(null);
+        }}
+        student={attendanceStudent}
       />
     </>
   );
 };
 
-export default ListClass;
+export default ListStudent;

@@ -10,8 +10,8 @@ const { Title } = Typography;
 
 const typeOptions = [
   { label: "Tất cả loại", value: "" },
-  { label: "Combo buổi", value: "combo" },
-  { label: "Khóa học", value: "course" },
+  { label: "Gói phổ thông ", value: "general" },
+  { label: "Gói chứng chỉ", value: "certificate" },
 ];
 
 const ListPackage = () => {

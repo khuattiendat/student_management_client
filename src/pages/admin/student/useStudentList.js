@@ -2,9 +2,9 @@ import { useEffect } from "react";
 import { App } from "antd";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
 import useSWR from "swr";
-import classService from "../../../services/classService";
+import studentService from "../../../services/studentService";
 
-export function useClassList() {
+export function useStudentList() {
   const { message } = App.useApp();
 
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
@@ -16,46 +16,36 @@ export function useClassList() {
     "search",
     parseAsString.withDefault(""),
   );
-  const [status, setStatus] = useQueryState(
-    "status",
+  const [branchId, setBranchId] = useQueryState(
+    "branchId",
     parseAsString.withDefault(""),
   );
-  const [branchId, setBranchId] = useQueryState("branchId", parseAsInteger);
-  const [teacherId, setTeacherId] = useQueryState("teacherId", parseAsInteger);
-  const [packageId, setPackageId] = useQueryState("packageId", parseAsInteger);
-  const [type, setType] = useQueryState("type", parseAsString.withDefault(""));
+  const [packageId, setPackageId] = useQueryState(
+    "packageId",
+    parseAsString.withDefault(""),
+  );
 
-  const swrKey = [
-    "classes",
-    page,
-    limit,
-    search,
-    status,
-    branchId,
-    teacherId,
-    packageId,
-    type,
-  ];
+  const swrKey = ["students", page, limit, search, branchId, packageId];
 
   const { data, error, isLoading, isValidating, mutate } = useSWR(
     swrKey,
     async () => {
       const params = { page, limit };
       if (search) params.search = search;
-      if (status) params.status = status;
-      if (branchId !== null) params.branchId = branchId;
-      if (teacherId !== null) params.teacherId = teacherId;
-      if (packageId !== null) params.packageId = packageId;
-      if (type) params.type = type;
-      const response = await classService.list(params);
+      if (branchId) params.branchId = Number(branchId);
+      if (packageId) params.packageId = Number(packageId);
+
+      const response = await studentService.list(params);
       return response?.data ?? { items: [], pagination: { total: 0 } };
     },
-    { keepPreviousData: true },
+    {
+      keepPreviousData: true,
+    },
   );
 
   useEffect(() => {
     if (error) {
-      message.error(error?.message || "Không thể tải danh sách lớp học");
+      message.error(error?.message || "Không thể tải danh sách học viên");
     }
   }, [error, message]);
 
@@ -66,13 +56,13 @@ export function useClassList() {
 
   const handleDelete = async (id) => {
     try {
-      await classService.remove(id);
-      message.success("Xóa lớp học thành công");
+      await studentService.remove(id);
+      message.success("Xóa học viên thành công");
       const lastPage = Math.max(1, Math.ceil((total - 1) / limit));
       if (page > lastPage) setPage(lastPage);
       else mutate();
     } catch (err) {
-      message.error(err?.message || "Xóa lớp học thất bại");
+      message.error(err?.message || "Xóa học viên thất bại");
     }
   };
 
@@ -86,16 +76,10 @@ export function useClassList() {
     setLimit,
     search,
     setSearch,
-    status,
-    setStatus,
     branchId,
     setBranchId,
-    teacherId,
-    setTeacherId,
     packageId,
     setPackageId,
-    type,
-    setType,
     fetchData,
     handleDelete,
   };

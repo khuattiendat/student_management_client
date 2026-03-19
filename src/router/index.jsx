@@ -16,6 +16,8 @@ import ListBranch from "../pages/admin/branch/list";
 import ListTeacher from "../pages/admin/teacher/list";
 import ListClass from "../pages/admin/class/list";
 import ListPackage from "../pages/admin/package/list";
+import SessionList from "../pages/admin/sessions/list";
+import ListStudent from "../pages/admin/student/list";
 
 const router = createBrowserRouter([
   {
@@ -43,7 +45,9 @@ const router = createBrowserRouter([
           },
           {
             path: "classes",
-            element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
+            element: (
+              <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />
+            ),
             children: [{ index: true, element: <ListClass /> }],
           },
           {
@@ -52,11 +56,18 @@ const router = createBrowserRouter([
             children: [{ index: true, element: <ListPackage /> }],
           },
           {
+            path: "sessions/:classId",
+            element: (
+              <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />
+            ),
+            children: [{ index: true, element: <SessionList /> }],
+          },
+          {
             path: "students",
             element: (
               <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />
             ),
-            children: [{ index: true, element: <Dashboard /> }],
+            children: [{ index: true, element: <ListStudent /> }],
           },
         ],
       },
