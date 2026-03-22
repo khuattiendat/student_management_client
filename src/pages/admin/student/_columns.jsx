@@ -8,6 +8,23 @@ import dayjs from "dayjs";
 
 const { Text } = Typography;
 
+const hasLowRemainingSessions = (record = {}) => {
+  const candidateArrays = [
+    record?.enrollments,
+    record?.studentPackages,
+    record?.packageEnrollments,
+    record?.remainingSessionsByPackage,
+  ];
+
+  const detailedRows = candidateArrays.find((item) => Array.isArray(item));
+
+  if (Array.isArray(detailedRows) && detailedRows.length > 0) {
+    return detailedRows.some((item) => Number(item?.remainingSessions) <= 3);
+  }
+
+  return Number(record?.remainingSessions) <= 3;
+};
+
 export const buildColumns = ({
   page,
   limit,
@@ -15,6 +32,7 @@ export const buildColumns = ({
   onRenew,
   onDelete,
   onViewAttendances,
+  onViewRemainingSessions,
   canManage,
 }) => [
   {
@@ -28,18 +46,37 @@ export const buildColumns = ({
     dataIndex: "name",
     width: 240,
     key: "name",
-    render: (_, record) => (
-      <div className="flex flex-col">
-        <Text strong>{record.name}</Text>
-        <Text type="secondary">{record.phone || "—"}</Text>
-      </div>
-    ),
+    render: (_, record) => {
+      const isLowRemainingSessions = hasLowRemainingSessions(record);
+
+      return (
+        <div className="flex flex-col">
+          <Text
+            strong
+            type={isLowRemainingSessions ? "danger" : undefined}
+            className={isLowRemainingSessions ? "animate-pulse" : ""}
+          >
+            {record.name}
+          </Text>
+          <Text type="secondary">{record.phone || "—"}</Text>
+        </div>
+      );
+    },
   },
   {
     title: "Ngày sinh",
     dataIndex: "birthday",
     key: "birthday",
-    render: (value) => (value ? dayjs(value).format("DD/MM/YYYY") : "—"),
+  },
+  {
+    title: "Địa chỉ",
+    dataIndex: "address",
+    key: "address",
+    render: (_, record) => {
+      const { addressDetail, wardName, provinceName } = record;
+      const parts = [addressDetail, wardName, provinceName].filter(Boolean);
+      return parts.length ? parts.join(", ") : "—";
+    },
   },
   {
     title: "Cơ sở",
@@ -47,6 +84,21 @@ export const buildColumns = ({
     width: 200,
     key: "branch",
     render: (branch) => branch?.name || "—",
+  },
+  {
+    title: "Lớp",
+    dataIndex: "classStudents",
+    key: "classStudents",
+    render: (classStudents = []) =>
+      classStudents.length ? (
+        <div className="flex flex-col gap-1">
+          {classStudents.map((item) => (
+            <Tag key={item.id}>{item?.classEntity?.name}</Tag>
+          ))}
+        </div>
+      ) : (
+        "—"
+      ),
   },
   {
     title: "Phụ huynh",
@@ -99,6 +151,15 @@ export const buildColumns = ({
     title: "Buổi còn lại",
     dataIndex: "remainingSessions",
     key: "remainingSessions",
+    render: (value, record) => (
+      <Button
+        type="link"
+        className="px-0!"
+        onClick={() => onViewRemainingSessions(record)}
+      >
+        {value ?? 0}
+      </Button>
+    ),
   },
   {
     title: "Ngày tạo",

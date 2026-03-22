@@ -1,6 +1,7 @@
 import { Button, Popconfirm, Space, Tag } from "antd";
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { Link } from "react-router-dom";
 
 const statusColors = {
   active: "green",
@@ -16,14 +17,23 @@ const statusLabels = {
 const typeColors = {
   general: "purple",
   certificate: "blue",
+  school_subject: "gold",
 };
 
 const typeLabels = {
   general: "Phổ thông",
   certificate: "Chứng chỉ",
+  school_subject: "Các môn trên trường",
 };
 
-export const buildColumns = ({ page, limit, onEdit, onDelete, canManage }) => [
+export const buildColumns = ({
+  page,
+  limit,
+  onEdit,
+  onDelete,
+  onViewPackages,
+  canManage,
+}) => [
   {
     title: "STT",
     width: 60,
@@ -49,9 +59,25 @@ export const buildColumns = ({ page, limit, onEdit, onDelete, canManage }) => [
   },
   {
     title: "Gói học",
-    dataIndex: "package",
-    key: "package",
-    render: (pkg) => pkg?.name || "—",
+    dataIndex: "packages",
+    key: "packages",
+    render: (packages = [], record) => {
+      const totalPackages = Array.isArray(packages) ? packages.length : 0;
+
+      if (totalPackages === 0) {
+        return "—";
+      }
+
+      return (
+        <Button
+          type="link"
+          className="p-0"
+          onClick={() => onViewPackages(record)}
+        >
+          {totalPackages} gói
+        </Button>
+      );
+    },
   },
   {
     title: "Loại",
@@ -62,13 +88,13 @@ export const buildColumns = ({ page, limit, onEdit, onDelete, canManage }) => [
     ),
   },
   {
-    title: "Ngày bắt đầu",
+    title: "Ngày khai giảng",
     dataIndex: "startDate",
     key: "startDate",
     render: (value) => (value ? dayjs(value).format("DD/MM/YYYY") : "—"),
   },
   {
-    title: "Học viên",
+    title: "Sĩ số",
     dataIndex: "students",
     key: "students",
     render: (students = []) => students.length,
@@ -112,6 +138,9 @@ export const buildColumns = ({ page, limit, onEdit, onDelete, canManage }) => [
           >
             <Button type="text" danger icon={<DeleteOutlined />} />
           </Popconfirm>
+          <Button type="link">
+            <Link to={`/sessions/${record.id}`}>Điểm danh</Link>
+          </Button>
         </Space>
       ) : (
         "—"

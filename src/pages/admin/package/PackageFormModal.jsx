@@ -1,37 +1,77 @@
-import { useEffect, useState } from "react";
-import {
-  App,
-  Button,
-  DatePicker,
-  Form,
-  Input,
-  InputNumber,
-  Modal,
-  Select,
-} from "antd";
-import dayjs from "dayjs";
+import { useEffect, useRef, useState } from "react";
+import { App, Button, Form, Input, InputNumber, Modal, Select } from "antd";
 import packageService from "../../../services/packageService";
-
-const typeOptions = [
-  { label: "Gói phổ thông ", value: "general" },
-  { label: "Gói chứng chỉ", value: "certificate" },
-];
+import PackageDynamicFields from "./PackageDynamicFields";
+import { typeOptions } from "./packageFormOptions";
+import { buildPackagePayload, getInitialValues } from "./packageFormUtils";
 
 const PackageFormModal = ({ open, onClose, editing, onSaved }) => {
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
+  const selectedType = Form.useWatch("type", form);
+  const selectedCurriculum = Form.useWatch(["info", "curriculum"], form);
+  const prevTypeRef = useRef();
+  const prevProgramRef = useRef();
 
   useEffect(() => {
     if (open) {
-      form.setFieldsValue({
-        name: editing?.name ?? "",
-        type: editing?.type ?? "general",
-        price: editing?.price ? Number(editing.price) : undefined,
-        totalSessions: editing?.totalSessions ?? undefined,
-      });
+      form.setFieldsValue(getInitialValues(editing));
+      prevTypeRef.current = undefined;
+      prevProgramRef.current = undefined;
     }
   }, [open, editing, form]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (prevTypeRef.current === undefined) {
+      prevTypeRef.current = selectedType;
+      return;
+    }
+
+    if (prevTypeRef.current === selectedType) {
+      return;
+    }
+
+    prevTypeRef.current = selectedType;
+
+    form.setFieldsValue({
+      info: {
+        type: selectedType,
+        curriculum: undefined,
+        comboType: undefined,
+        ageGroup: undefined,
+        certificateType: undefined,
+        subject: undefined,
+        class: undefined,
+      },
+    });
+  }, [selectedType, form, open]);
+
+  useEffect(() => {
+    if (!open || selectedType !== "general") return;
+
+    if (prevProgramRef.current === undefined) {
+      prevProgramRef.current = selectedCurriculum;
+      return;
+    }
+
+    if (prevProgramRef.current === selectedCurriculum) {
+      return;
+    }
+
+    prevProgramRef.current = selectedCurriculum;
+
+    if (selectedCurriculum !== "chinese") {
+      form.setFieldsValue({
+        info: {
+          ...form.getFieldValue("info"),
+          ageGroup: undefined,
+        },
+      });
+    }
+  }, [selectedCurriculum, selectedType, form, open]);
 
   const handleClose = () => {
     form.resetFields();
@@ -41,13 +81,7 @@ const PackageFormModal = ({ open, onClose, editing, onSaved }) => {
   const handleSave = async (values) => {
     setSaving(true);
     try {
-      const payload = {
-        name: values.name,
-        type: values.type,
-        price: values.price,
-        totalSessions: values.totalSessions,
-      };
-
+      const payload = buildPackagePayload(values);
       if (editing) {
         await packageService.update(editing.id, payload);
         message.success("Cập nhật gói học thành công");
@@ -96,8 +130,16 @@ const PackageFormModal = ({ open, onClose, editing, onSaved }) => {
           name="type"
           rules={[{ required: true, message: "Vui lòng chọn loại gói" }]}
         >
-          <Select options={typeOptions} placeholder="Chọn loại gói" />
+          <Select
+            options={typeOptions}
+            placeholder="Chọn loại gói"
+            onChange={(value) => {
+              form.setFieldValue(["info", "type"], value);
+            }}
+          />
         </Form.Item>
+
+        <PackageDynamicFields selectedType={selectedType} />
 
         <Form.Item
           label="Giá (VNĐ)"
@@ -105,7 +147,7 @@ const PackageFormModal = ({ open, onClose, editing, onSaved }) => {
           rules={[{ required: true, message: "Vui lòng nhập giá" }]}
         >
           <InputNumber
-            className="!w-full"
+            className="w-full!"
             min={0}
             formatter={(value) =>
               value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ""
@@ -120,7 +162,7 @@ const PackageFormModal = ({ open, onClose, editing, onSaved }) => {
           name="totalSessions"
           rules={[{ required: true, message: "Vui lòng nhập số buổi" }]}
         >
-          <InputNumber className="!w-full" min={1} placeholder="Nhập số buổi" />
+          <InputNumber className="w-full!" min={1} placeholder="Nhập số buổi" />
         </Form.Item>
 
         <div className="flex justify-end gap-2">

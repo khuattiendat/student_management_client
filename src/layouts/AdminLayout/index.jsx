@@ -16,7 +16,6 @@ import { MdPassword } from "react-icons/md";
 import authService from "../../services/authService";
 import ModalChangePassword from "../../components/modal/ModalChangePassword";
 import ModalInfo from "../../components/modal/ModalInfo";
-import branchService from "../../services/branchService";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -30,18 +29,13 @@ const AdminLayout = () => {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const setUser = useAuthStore((s) => s.setUser);
-  const branches = useBranchStore((s) => s.branches);
   const setBranches = useBranchStore((s) => s.setBranches);
   const clearBranches = useBranchStore((s) => s.clearBranches);
 
   const { data } = useSWR("admin-layout-data", async () => {
-    const [profileData, branchData] = await Promise.all([
-      authService.getProfile(),
-      branchService.getListBranchWithClass(),
-    ]);
+    const [profileData] = await Promise.all([authService.getProfile()]);
     return {
       profile: profileData?.data ?? null,
-      branches: branchData?.data ?? [],
     };
   });
 
@@ -52,10 +46,7 @@ const AdminLayout = () => {
     setBranches(data?.branches ?? []);
   }, [data, setUser, setBranches]);
 
-  const sidebarMenuItems = useMemo(
-    () => buildSidebarMenuItems(branches),
-    [branches],
-  );
+  const sidebarMenuItems = useMemo(() => buildSidebarMenuItems(), []);
 
   const userMenuItems = [
     { key: "profile", icon: <UserOutlined />, label: "Hồ sơ" },
@@ -132,7 +123,7 @@ const AdminLayout = () => {
             mode="inline"
             items={sidebarMenuItems}
             onClick={({ key }) => navigate(key)}
-            className="border-r-0 pt-2"
+            className="border-r-0 pt-2 select-none"
           />
         </Sider>
 

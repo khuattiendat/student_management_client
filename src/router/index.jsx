@@ -18,6 +18,7 @@ import ListClass from "../pages/admin/class/list";
 import ListPackage from "../pages/admin/package/list";
 import SessionList from "../pages/admin/sessions/list";
 import ListStudent from "../pages/admin/student/list";
+import ListTrash from "../pages/admin/trash/list";
 
 const router = createBrowserRouter([
   {
@@ -68,6 +69,11 @@ const router = createBrowserRouter([
               <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />
             ),
             children: [{ index: true, element: <ListStudent /> }],
+          },
+          {
+            path: "trash",
+            element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
+            children: [{ index: true, element: <ListTrash /> }],
           },
         ],
       },

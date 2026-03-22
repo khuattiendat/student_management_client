@@ -29,6 +29,8 @@ const ListTeacher = () => {
     setSearch,
     status,
     setStatus,
+    branchId,
+    setBranchId,
     fetchData,
     handleDelete,
   } = useTeacherList();
@@ -46,6 +48,11 @@ const ListTeacher = () => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+
+  const allBranchOptions = [
+    { label: "Tất cả cơ sở", value: "" },
+    ...branchOptions,
+  ];
 
   const handleSearch = (keyword) => {
     setPage(1);
@@ -105,6 +112,17 @@ const ListTeacher = () => {
               setStatus(value || null);
             }}
             className="w-56"
+          />
+          <Select
+            value={branchId ?? ""}
+            options={allBranchOptions}
+            onChange={(value) => {
+              setPage(1);
+              setBranchId(value || null);
+            }}
+            className="w-56"
+            showSearch
+            optionFilterProp="label"
           />
         </Space>
       </div>

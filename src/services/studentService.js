@@ -2,6 +2,29 @@ import axiosInstance from "./axiosInstance";
 
 const studentService = {
   list: (params) => axiosInstance.get("/students", { params }),
+  byEnrollments: ({ branchId, packageIds, search }) => {
+    const query = new URLSearchParams();
+
+    if (branchId !== undefined && branchId !== null && branchId !== "") {
+      query.append("branchId", String(branchId));
+    }
+
+    const normalizedPackageIds = Array.isArray(packageIds)
+      ? packageIds
+      : packageIds !== undefined && packageIds !== null && packageIds !== ""
+        ? [packageIds]
+        : [];
+
+    normalizedPackageIds.forEach((id) => {
+      query.append("packageIds", String(id));
+    });
+
+    if (search) {
+      query.append("search", String(search));
+    }
+
+    return axiosInstance.get(`/students/by-enrollments?${query.toString()}`);
+  },
   detail: (id) => axiosInstance.get(`/students/${id}`),
   create: (data) => axiosInstance.post("/students", data),
   update: (id, data) => axiosInstance.put(`/students/${id}`, data),

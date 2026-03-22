@@ -6,9 +6,11 @@ import {
   BookOutlined,
   CalendarOutlined,
   UserOutlined,
+  DeleteOutlined,
+  InboxOutlined,
 } from "@ant-design/icons";
 
-export const buildSidebarMenuItems = (branches = []) => [
+export const buildSidebarMenuItems = () => [
   {
     key: "/dashboard",
     icon: <DashboardFilled />,
@@ -40,16 +42,8 @@ export const buildSidebarMenuItems = (branches = []) => [
     label: "Quản lý học viên",
   },
   {
-    key: "sessions-group",
-    icon: <CalendarOutlined />,
-    label: "Quản lý lịch học",
-    children: (branches ?? []).map((branch) => ({
-      key: `sessions-branch-${branch.id}`,
-      label: branch.name,
-      children: (branch.classes ?? []).map((classItem) => ({
-        key: `/sessions/${classItem.id}`,
-        label: classItem.name,
-      })),
-    })),
+    key: "/trash",
+    icon: <InboxOutlined color="red" />,
+    label: "Thùng rác",
   },
 ];

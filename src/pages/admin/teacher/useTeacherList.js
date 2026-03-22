@@ -20,8 +20,12 @@ export function useTeacherList() {
     "status",
     parseAsString.withDefault(""),
   );
+  const [branchId, setBranchId] = useQueryState(
+    "branchId",
+    parseAsString.withDefault(""),
+  );
 
-  const swrKey = ["teachers", page, limit, search, status];
+  const swrKey = ["teachers", page, limit, search, status, branchId];
 
   const { data, error, isLoading, isValidating, mutate } = useSWR(
     swrKey,
@@ -29,6 +33,7 @@ export function useTeacherList() {
       const params = { page, limit };
       if (search) params.search = search;
       if (status) params.status = status;
+      if (branchId) params.branchId = Number(branchId);
       const response = await teacherService.list(params);
       return response?.data ?? { items: [], pagination: { total: 0 } };
     },
@@ -72,6 +77,8 @@ export function useTeacherList() {
     setSearch,
     status,
     setStatus,
+    branchId,
+    setBranchId,
     fetchData,
     handleDelete,
   };

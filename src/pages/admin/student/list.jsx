@@ -12,6 +12,7 @@ import { buildColumns } from "./_columns";
 import StudentFormModal from "./StudentFormModal";
 import RenewCourseModal from "./RenewCourseModal";
 import StudentAttendanceModal from "./StudentAttendanceModal";
+import StudentRemainingSessionsModal from "./StudentRemainingSessionsModal";
 
 const { Title } = Typography;
 
@@ -46,6 +47,9 @@ const ListStudent = () => {
         value: branch.id,
       }));
     },
+    {
+      revalidateOnFocus: true,
+    },
   );
 
   const { data: packageOptions = [] } = useSWR(
@@ -55,6 +59,11 @@ const ListStudent = () => {
       return (response?.data?.items ?? []).map((item) => ({
         label: item.name,
         value: item.id,
+        name: item.name,
+        type: item.type,
+        totalSessions: item.totalSessions,
+        price: item.price,
+        info: item.info,
       }));
     },
   );
@@ -65,6 +74,8 @@ const ListStudent = () => {
   const [renewingStudent, setRenewingStudent] = useState(null);
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
   const [attendanceStudent, setAttendanceStudent] = useState(null);
+  const [remainingModalOpen, setRemainingModalOpen] = useState(false);
+  const [remainingStudent, setRemainingStudent] = useState(null);
 
   const handleSearch = (keyword) => {
     setPage(1);
@@ -103,6 +114,11 @@ const ListStudent = () => {
     setAttendanceModalOpen(true);
   };
 
+  const openRemainingSessions = (record) => {
+    setRemainingStudent(record);
+    setRemainingModalOpen(true);
+  };
+
   const columns = buildColumns({
     page,
     limit,
@@ -110,6 +126,7 @@ const ListStudent = () => {
     onRenew: openRenew,
     onDelete: handleDelete,
     onViewAttendances: openAttendance,
+    onViewRemainingSessions: openRemainingSessions,
     canManage,
   });
 
@@ -211,6 +228,15 @@ const ListStudent = () => {
           setAttendanceStudent(null);
         }}
         student={attendanceStudent}
+      />
+
+      <StudentRemainingSessionsModal
+        open={remainingModalOpen}
+        onClose={() => {
+          setRemainingModalOpen(false);
+          setRemainingStudent(null);
+        }}
+        student={remainingStudent}
       />
     </>
   );

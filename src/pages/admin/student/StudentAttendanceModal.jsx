@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { App, Modal, Table, Tag, Typography } from "antd";
+import { App, Modal, Table, Tag, Typography, Select, Space } from "antd";
 import dayjs from "dayjs";
+import useSWR from "swr";
 import studentService from "../../../services/studentService";
 
 const { Text } = Typography;
@@ -9,49 +10,78 @@ const statusConfig = {
   present: { color: "green", label: "Có mặt" },
   absent: { color: "red", label: "Vắng" },
   late: { color: "orange", label: "Đi muộn" },
-  excused: { color: "blue", label: "Có phép" },
 };
 
 const StudentAttendanceModal = ({ open, onClose, student }) => {
   const { message } = App.useApp();
-  const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [total, setTotal] = useState(0);
+  const [classFilter, setClassFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [classes, setClasses] = useState([]);
 
+  // SWR key includes all filter and pagination params
+  const swrKey =
+    open && student?.id
+      ? ["attendances", student.id, page, limit, classFilter, statusFilter]
+      : null;
+
+  // SWR fetcher function
+  const fetcher = async () => {
+    const params = { page, limit };
+
+    if (classFilter) {
+      params.classId = classFilter;
+    }
+
+    if (statusFilter) {
+      params.status = statusFilter;
+    }
+
+    const response = await studentService.attendances(student.id, params);
+    return response?.data ?? response;
+  };
+
+  const { data, isLoading, error } = useSWR(swrKey, fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 5000,
+  });
+
+  const items = data?.items ?? [];
+  const total = data?.pagination?.total ?? 0;
+
+  // Handle SWR errors
   useEffect(() => {
-    const loadAttendances = async () => {
-      if (!open || !student?.id) return;
+    if (error) {
+      message.error(error?.message || "Không thể tải lịch sử điểm danh");
+    }
+  }, [error, message]);
 
-      try {
-        setLoading(true);
-        const response = await studentService.attendances(student.id, {
-          page,
-          limit,
-        });
-
-        const payload = response?.data ?? response;
-        setItems(payload?.items ?? []);
-        setTotal(payload?.pagination?.total ?? 0);
-      } catch (err) {
-        message.error(err?.message || "Không thể tải lịch sử điểm danh");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadAttendances();
-  }, [open, student?.id, page, limit, message]);
-
+  // Reset states and extract classes when modal opens/closes or data changes
   useEffect(() => {
     if (!open) {
       setPage(1);
       setLimit(10);
-      setItems([]);
-      setTotal(0);
+      setClassFilter("");
+      setStatusFilter("");
+      setClasses([]);
     }
   }, [open]);
+
+  // Extract unique classes from attendance items
+  useEffect(() => {
+    if (items && items.length > 0) {
+      const uniqueClasses = new Map();
+      items.forEach((item) => {
+        const classId = item?.session?.classEntity?.id;
+        const className = item?.session?.classEntity?.name;
+        if (classId && className) {
+          uniqueClasses.set(classId, className);
+        }
+      });
+      setClasses(Array.from(uniqueClasses, ([id, name]) => ({ id, name })));
+    }
+  }, [items]);
 
   const columns = [
     {
@@ -98,7 +128,7 @@ const StudentAttendanceModal = ({ open, onClose, student }) => {
       },
     },
     {
-      title: "Rate",
+      title: "Điểm đánh giá",
       dataIndex: "rate",
       key: "rate",
       render: (value) => value ?? "—",
@@ -115,11 +145,46 @@ const StudentAttendanceModal = ({ open, onClose, student }) => {
       width={1000}
       destroyOnClose
     >
+      <Space className="mb-4 gap-4" wrap>
+        <Select
+          placeholder="Lọc theo lớp học"
+          style={{ width: 200 }}
+          allowClear
+          value={classFilter || undefined}
+          onChange={(value) => {
+            setClassFilter(value || "");
+            setPage(1);
+          }}
+          options={[
+            ...classes.map((cls) => ({
+              label: cls.name,
+              value: cls.id,
+            })),
+          ]}
+        />
+
+        <Select
+          placeholder="Lọc theo trạng thái"
+          style={{ width: 200 }}
+          allowClear
+          value={statusFilter || undefined}
+          onChange={(value) => {
+            setStatusFilter(value || "");
+            setPage(1);
+          }}
+          options={[
+            { label: "Có mặt", value: "present" },
+            { label: "Vắng", value: "absent" },
+            { label: "Đi muộn", value: "late" },
+          ]}
+        />
+      </Space>
+
       <Table
         rowKey="id"
         dataSource={items}
         columns={columns}
-        loading={loading}
+        loading={isLoading}
         bordered
         size="middle"
         pagination={{

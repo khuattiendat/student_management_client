@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import useSWR from "swr";
 import {
@@ -9,6 +9,7 @@ import {
   Input,
   InputNumber,
   Modal,
+  Pagination,
   Select,
   Space,
   Table,
@@ -39,10 +40,17 @@ const statusTagConfig = {
   excused: { color: "blue", icon: <ClockCircleOutlined />, text: "Có phép" },
 };
 
+const getWeekStart = (value) => {
+  const date = dayjs(value).startOf("day");
+  const day = date.day();
+  const diff = day === 0 ? -6 : 1 - day;
+  return date.add(diff, "day");
+};
+
 const SessionList = () => {
   const { message } = App.useApp();
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const limit = 10;
   const [search, setSearch] = useState("");
   const [sessionDate, setSessionDate] = useState(null);
   const [attendanceOpen, setAttendanceOpen] = useState(false);
@@ -51,6 +59,7 @@ const SessionList = () => {
   const [selectedSession, setSelectedSession] = useState(null);
   const [attendanceRows, setAttendanceRows] = useState([]);
   const [hasExistingAttendance, setHasExistingAttendance] = useState(false);
+  const hasAutoJumpedToCurrentWeekRef = useRef(false);
 
   const { classId } = useParams();
   const numericClassId = Number(classId);
@@ -70,18 +79,9 @@ const SessionList = () => {
     isLoading: sessionsLoading,
     isValidating: sessionsValidating,
   } = useSWR(
-    [
-      "sessions",
-      numericClassId,
-      page,
-      limit,
-      search,
-      sessionDate?.format("YYYY-MM-DD"),
-    ],
+    ["sessions", numericClassId, search, sessionDate?.format("YYYY-MM-DD")],
     async () => {
       const response = await sessionService.list({
-        page,
-        limit,
         classId: numericClassId,
         search: search || undefined,
         sessionDate: sessionDate ? sessionDate.format("YYYY-MM-DD") : undefined,
@@ -95,9 +95,138 @@ const SessionList = () => {
   );
 
   const classStudents = classDetailData?.students ?? [];
-  const sessions = sessionListData?.items ?? [];
-  const total = sessionListData?.pagination?.total ?? 0;
+  const sessions = useMemo(
+    () => sessionListData?.items ?? [],
+    [sessionListData],
+  );
   const tableLoading = sessionsLoading || sessionsValidating;
+
+  const sortedSessions = useMemo(() => {
+    return [...sessions].sort((a, b) => {
+      const dateA = dayjs(a?.sessionDate).valueOf();
+      const dateB = dayjs(b?.sessionDate).valueOf();
+
+      if (dateA !== dateB) {
+        return dateB - dateA;
+      }
+
+      return String(b?.startTime || "").localeCompare(
+        String(a?.startTime || ""),
+      );
+    });
+  }, [sessions]);
+
+  const currentWeekStartText = useMemo(
+    () => getWeekStart(dayjs()).format("YYYY-MM-DD"),
+    [],
+  );
+
+  const anchorIndex = useMemo(
+    () =>
+      sortedSessions.findIndex(
+        (item) =>
+          dayjs(item?.sessionDate).format("YYYY-MM-DD") ===
+          currentWeekStartText,
+      ),
+    [currentWeekStartText, sortedSessions],
+  );
+
+  const paginationData = useMemo(() => {
+    if (sortedSessions.length === 0) {
+      return { page1Items: [], remainingItems: [], totalPages: 1 };
+    }
+
+    if (anchorIndex > 0) {
+      const page1Items = sortedSessions.slice(0, anchorIndex);
+      const remainingItems = sortedSessions.slice(anchorIndex);
+      const totalPages =
+        1 + Math.max(1, Math.ceil(remainingItems.length / limit));
+
+      return {
+        page1Items,
+        remainingItems,
+        totalPages,
+      };
+    }
+
+    return {
+      page1Items: [],
+      remainingItems: sortedSessions,
+      totalPages: Math.max(1, Math.ceil(sortedSessions.length / limit)),
+    };
+  }, [anchorIndex, limit, sortedSessions]);
+
+  const totalPages = paginationData.totalPages;
+  const totalSessions = sortedSessions.length;
+
+  useEffect(() => {
+    if (totalPages === 0) {
+      if (page !== 1) setPage(1);
+      return;
+    }
+
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, setPage, totalPages]);
+
+  useEffect(() => {
+    if (search || sessionDate || hasAutoJumpedToCurrentWeekRef.current) {
+      return;
+    }
+
+    if (sortedSessions.length === 0) {
+      return;
+    }
+
+    if (anchorIndex > 0) {
+      setPage(2);
+    } else {
+      setPage(1);
+    }
+
+    hasAutoJumpedToCurrentWeekRef.current = true;
+  }, [anchorIndex, search, sessionDate, setPage, sortedSessions]);
+
+  useEffect(() => {
+    if (!search && !sessionDate) return;
+    hasAutoJumpedToCurrentWeekRef.current = true;
+  }, [search, sessionDate]);
+
+  const currentPageSessions = useMemo(() => {
+    if (totalSessions === 0) {
+      return [];
+    }
+
+    if (anchorIndex > 0) {
+      if (page === 1) {
+        return paginationData.page1Items;
+      }
+
+      const startIndex = (page - 2) * limit;
+      return paginationData.remainingItems.slice(
+        startIndex,
+        startIndex + limit,
+      );
+    }
+
+    const startIndex = (page - 1) * limit;
+    return paginationData.remainingItems.slice(startIndex, startIndex + limit);
+  }, [anchorIndex, limit, page, paginationData, totalSessions]);
+
+  const getGlobalIndex = (indexInPage) => {
+    if (anchorIndex > 0) {
+      if (page === 1) {
+        return indexInPage + 1;
+      }
+
+      return (
+        paginationData.page1Items.length + (page - 2) * limit + indexInPage + 1
+      );
+    }
+
+    return (page - 1) * limit + indexInPage + 1;
+  };
 
   const openAttendanceModal = async (sessionRecord) => {
     setSelectedSession(sessionRecord);
@@ -113,7 +242,7 @@ const SessionList = () => {
         name: item?.student?.name,
         phone: item?.student?.phone,
         status: item?.status ?? "",
-        rate: item?.rate,
+        rate: item?.rate ?? 5,
       }));
 
       setHasExistingAttendance((attendanceDetail?.totalTaken ?? 0) > 0);
@@ -126,7 +255,7 @@ const SessionList = () => {
         name: student.name,
         phone: student.phone,
         status: "",
-        rate: null,
+        rate: 5,
       }));
       setHasExistingAttendance(false);
       setAttendanceRows(fallbackRows);
@@ -194,7 +323,7 @@ const SessionList = () => {
       title: "STT",
       width: 60,
       align: "center",
-      render: (_, __, index) => (page - 1) * limit + index + 1,
+      render: (_, __, index) => getGlobalIndex(index),
     },
     {
       title: "Ngày học",
@@ -278,15 +407,16 @@ const SessionList = () => {
       ),
     },
     {
-      title: "Điểm / rate",
+      title: "Điểm đánh giá",
       key: "rate",
       render: (_, row) => (
         <InputNumber
           min={0}
           step={1}
+          max={5}
           value={row.rate}
           onChange={(value) =>
-            updateAttendanceRow(row.studentId, "rate", value)
+            updateAttendanceRow(row.studentId, "rate", value ?? 5)
           }
           placeholder="0"
           className="w-28"
@@ -368,9 +498,6 @@ const SessionList = () => {
           <Text>
             <strong>Giáo viên:</strong> {classDetailData?.teacher?.name || "—"}
           </Text>
-          <Text>
-            <strong>Gói học:</strong> {classDetailData?.package?.name || "—"}
-          </Text>
         </div>
 
         <Table
@@ -386,24 +513,24 @@ const SessionList = () => {
 
       <Table
         rowKey="id"
-        dataSource={sessions}
+        dataSource={currentPageSessions}
         columns={sessionColumns}
         loading={tableLoading}
-        pagination={{
-          current: page,
-          pageSize: limit,
-          total,
-          showSizeChanger: true,
-          showTotal: (value) => `Tổng ${value} buổi học`,
-          pageSizeOptions: ["10", "20", "50"],
-          onChange: (nextPage, nextLimit) => {
-            setPage(nextPage);
-            setLimit(nextLimit);
-          },
-        }}
+        pagination={false}
         bordered
         size="middle"
       />
+
+      <div className="flex justify-end">
+        <Pagination
+          current={page}
+          total={totalPages}
+          pageSize={1}
+          showSizeChanger={false}
+          onChange={(nextPage) => setPage(nextPage)}
+          showTotal={() => `Tổng ${totalSessions} buổi học`}
+        />
+      </div>
 
       <Modal
         title={attendanceModalTitle}

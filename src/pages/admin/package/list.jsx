@@ -10,8 +10,9 @@ const { Title } = Typography;
 
 const typeOptions = [
   { label: "Tất cả loại", value: "" },
-  { label: "Gói phổ thông ", value: "general" },
+  { label: "Gói phổ thông", value: "general" },
   { label: "Gói chứng chỉ", value: "certificate" },
+  { label: "Các môn trên trường", value: "school_subject" },
 ];
 
 const ListPackage = () => {
@@ -81,7 +82,7 @@ const ListPackage = () => {
           <InputSearch
             value={search ?? ""}
             onSearch={handleSearch}
-            placeholder="Tìm theo tên gói..."
+            placeholder="Tìm theo tên hoặc loại gói..."
             className="max-w-xs"
           />
           <Select

@@ -27,7 +27,7 @@ const App = () => (
   >
     <SWRConfig
       value={{
-        revalidateOnFocus: false,
+        revalidateOnFocus: true,
         shouldRetryOnError: false,
         dedupingInterval: 2000,
       }}
