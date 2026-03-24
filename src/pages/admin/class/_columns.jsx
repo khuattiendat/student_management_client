@@ -62,21 +62,25 @@ export const buildColumns = ({
     dataIndex: "packages",
     key: "packages",
     render: (packages = [], record) => {
-      const totalPackages = Array.isArray(packages) ? packages.length : 0;
+      if (canManage) {
+        const totalPackages = Array.isArray(packages) ? packages.length : 0;
 
-      if (totalPackages === 0) {
+        if (totalPackages === 0) {
+          return "—";
+        }
+
+        return (
+          <Button
+            type="link"
+            className="p-0"
+            onClick={() => onViewPackages(record)}
+          >
+            {totalPackages} gói
+          </Button>
+        );
+      } else {
         return "—";
       }
-
-      return (
-        <Button
-          type="link"
-          className="p-0"
-          onClick={() => onViewPackages(record)}
-        >
-          {totalPackages} gói
-        </Button>
-      );
     },
   },
   {
@@ -143,7 +147,9 @@ export const buildColumns = ({
           </Button>
         </Space>
       ) : (
-        "—"
+        <Button type="link">
+          <Link to={`/sessions/${record.id}`}>Điểm danh</Link>
+        </Button>
       ),
   },
 ];

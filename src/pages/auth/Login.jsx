@@ -1,6 +1,6 @@
 import { Form, Input, Button, Card, Typography, Divider, App } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
 import authService from "../../services/authService";
 
@@ -18,9 +18,17 @@ const Login = () => {
   const onFinish = async (values) => {
     try {
       const response = await authService.login(values);
-      login(response.data);
-      message.success("Đăng nhập thành công!");
-      navigate(from, { replace: true });
+      const role = response.data?.user?.role;
+      await login(response.data);
+      if (role === "admin") {
+        login(response.data);
+        message.success("Đăng nhập thành công!");
+        navigate(from, { replace: true });
+      } else {
+        login(response.data);
+        message.success("Đăng nhập thành công");
+        navigate("/giao-vien/danh-sach-lop-hoc", { replace: true });
+      }
     } catch (err) {
       const errorMessage =
         err?.response?.data?.message ||

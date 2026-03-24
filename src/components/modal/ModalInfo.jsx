@@ -9,20 +9,26 @@ const roleColors = {
   teacher: "blue",
 };
 
+const defaultUserDisplay = "—";
+
 const ModalInfo = ({ open, close }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
+  const displayName = user?.name || defaultUserDisplay;
+  const displayRole = user?.role || defaultUserDisplay;
+  const roleColor = roleColors[user?.role] ?? "default";
 
   useEffect(() => {
-    if (open) {
-      form.setFieldsValue({
-        name: user?.name || "",
-        phone: user?.phone || "",
-        userName: user?.userName || "",
-      });
-    }
+    if (!open) return;
+
+    form.setFieldsValue({
+      name: user?.name || "",
+      phone: user?.phone || "",
+      userName: user?.userName || "",
+    });
+    console.log(user);
   }, [open, user, form]);
 
   const handleClose = () => {
@@ -31,13 +37,13 @@ const ModalInfo = ({ open, close }) => {
   };
 
   const onSubmit = async (values) => {
+    const payload = {
+      name: values.name,
+      phone: values.phone,
+    };
+
     setSubmitting(true);
     try {
-      const { phone, name } = values;
-      const payload = {
-        name,
-        phone,
-      };
       const { data } = await authService.updateProfile(payload);
       setUser(data || { ...user, ...payload });
       message.success("Cập nhật thông tin thành công");
@@ -63,9 +69,9 @@ const ModalInfo = ({ open, close }) => {
       <div className="flex flex-col items-center gap-3 py-4">
         <Avatar size={72} icon={<UserOutlined />} className="bg-blue-500" />
         <div className="text-center">
-          <p className="text-base font-semibold">{user?.name || "—"}</p>
-          <Tag color={roleColors[user?.role] ?? "default"} className="mt-1">
-            {user?.role || "—"}
+          <p className="text-base font-semibold">{displayName}</p>
+          <Tag color={roleColor} className="mt-1">
+            {displayRole}
           </Tag>
         </div>
       </div>

@@ -162,6 +162,7 @@ const ClassFormModal = ({
           name: "",
           type: "general",
           branchId: undefined,
+          roomName: "Phòng 301",
           teacherId: undefined,
           packageIds: [],
           weekdays: [],
@@ -184,6 +185,7 @@ const ClassFormModal = ({
           name: detail?.name ?? "",
           type: detail?.type ?? "general",
           branchId: detail?.branchId ?? detail?.branch?.id ?? undefined,
+          roomName: detail?.roomName ?? "",
           teacherId: detail?.teacherId ?? detail?.teacher?.id ?? undefined,
           packageIds:
             detail?.packageIds?.length > 0
@@ -504,6 +506,7 @@ const ClassFormModal = ({
         name: values.name,
         type: values.type,
         branchId: values.branchId,
+        roomName: values.roomName,
         teacherId: values.teacherId,
         packageIds: selectedPackageIdList,
         weekdays: values.weekdays ?? [],
@@ -565,6 +568,21 @@ const ClassFormModal = ({
           rules={[{ required: true, message: "Vui lòng nhập tên lớp" }]}
         >
           <Input placeholder="Nhập tên lớp học" />
+        </Form.Item>
+        <Form.Item
+          label="Phòng học"
+          name="roomName"
+          rules={[{ required: true, message: "Vui lòng nhập tên lớp" }]}
+        >
+          <Select
+            options={[
+              { label: "Phòng 301", value: "Phòng 301" },
+              { label: "Phòng 302", value: "Phòng 302" },
+            ]}
+            placeholder="Chọn phòng học"
+            showSearch
+            optionFilterProp="label"
+          />
         </Form.Item>
 
         <Form.Item

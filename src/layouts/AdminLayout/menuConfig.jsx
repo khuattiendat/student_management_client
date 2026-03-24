@@ -8,6 +8,8 @@ import {
   UserOutlined,
   DeleteOutlined,
   InboxOutlined,
+  CalendarFilled,
+  KeyOutlined,
 } from "@ant-design/icons";
 
 export const buildSidebarMenuItems = () => [
@@ -42,8 +44,30 @@ export const buildSidebarMenuItems = () => [
     label: "Quản lý học viên",
   },
   {
+    key: "/calendar",
+    icon: <CalendarFilled />,
+    label: "Quản lý lịch học",
+  },
+  {
+    key: "/teacher-codes",
+    icon: <KeyOutlined />,
+    label: "Quản lý mã",
+  },
+  {
     key: "/trash",
     icon: <InboxOutlined color="red" />,
     label: "Thùng rác",
+  },
+];
+export const buildSidebarMenuItemsTeacher = () => [
+  {
+    key: "/giao-vien/danh-sach-lop-hoc",
+    icon: <ReadOutlined />,
+    label: "Danh sách lớp học",
+  },
+  {
+    key: "/giao-vien/lich-hoc",
+    icon: <CalendarFilled />,
+    label: "Quản lý lịch học",
   },
 ];

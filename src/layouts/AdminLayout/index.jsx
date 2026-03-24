@@ -11,11 +11,15 @@ import { NuqsAdapter } from "nuqs/adapters/react-router";
 import useSWR from "swr";
 import useAuthStore from "../../store/authStore";
 import useBranchStore from "../../store/branchStore";
-import { buildSidebarMenuItems } from "./menuConfig";
+import {
+  buildSidebarMenuItems,
+  buildSidebarMenuItemsTeacher,
+} from "./menuConfig";
 import { MdPassword } from "react-icons/md";
 import authService from "../../services/authService";
 import ModalChangePassword from "../../components/modal/ModalChangePassword";
 import ModalInfo from "../../components/modal/ModalInfo";
+import { ROLES } from "../../utils/constants";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -27,6 +31,7 @@ const AdminLayout = () => {
 
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const role = useAuthStore((s) => s.user?.role);
   const logout = useAuthStore((s) => s.logout);
   const setUser = useAuthStore((s) => s.setUser);
   const setBranches = useBranchStore((s) => s.setBranches);
@@ -47,7 +52,10 @@ const AdminLayout = () => {
   }, [data, setUser, setBranches]);
 
   const sidebarMenuItems = useMemo(() => buildSidebarMenuItems(), []);
-
+  const sidebarMenuItemsTeacher = useMemo(
+    () => buildSidebarMenuItemsTeacher(),
+    [],
+  );
   const userMenuItems = [
     { key: "profile", icon: <UserOutlined />, label: "Hồ sơ" },
     { type: "divider" },
@@ -121,7 +129,9 @@ const AdminLayout = () => {
         >
           <Menu
             mode="inline"
-            items={sidebarMenuItems}
+            items={
+              role == ROLES.ADMIN ? sidebarMenuItems : sidebarMenuItemsTeacher
+            }
             onClick={({ key }) => navigate(key)}
             className="border-r-0 pt-2 select-none"
           />

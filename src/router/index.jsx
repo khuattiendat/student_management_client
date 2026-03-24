@@ -19,6 +19,8 @@ import ListPackage from "../pages/admin/package/list";
 import SessionList from "../pages/admin/sessions/list";
 import ListStudent from "../pages/admin/student/list";
 import ListTrash from "../pages/admin/trash/list";
+import Calendar from "../pages/calendar/List";
+import ListTeacherCode from "../pages/admin/teacher-code/list";
 
 const router = createBrowserRouter([
   {
@@ -46,9 +48,7 @@ const router = createBrowserRouter([
           },
           {
             path: "classes",
-            element: (
-              <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />
-            ),
+            element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
             children: [{ index: true, element: <ListClass /> }],
           },
           {
@@ -65,15 +65,37 @@ const router = createBrowserRouter([
           },
           {
             path: "students",
-            element: (
-              <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />
-            ),
+            element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
             children: [{ index: true, element: <ListStudent /> }],
+          },
+          {
+            path: "calendar",
+            element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
+            children: [{ index: true, element: <Calendar /> }],
+          },
+          {
+            path: "teacher-codes",
+            element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
+            children: [{ index: true, element: <ListTeacherCode /> }],
           },
           {
             path: "trash",
             element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
             children: [{ index: true, element: <ListTrash /> }],
+          },
+          {
+            path: "giao-vien/danh-sach-lop-hoc",
+            element: (
+              <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />
+            ),
+            children: [{ index: true, element: <ListClass /> }],
+          },
+          {
+            path: "giao-vien/lich-hoc",
+            element: (
+              <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />
+            ),
+            children: [{ index: true, element: <Calendar /> }],
           },
         ],
       },

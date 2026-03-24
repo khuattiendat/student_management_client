@@ -33,6 +33,9 @@ const studentService = {
   attendances: (id, params) =>
     axiosInstance.get(`/students/${id}/attendances`, { params }),
   remove: (id) => axiosInstance.delete(`/students/${id}`),
+  restore: (id) => axiosInstance.put(`/students/${id}/restore`),
+  forceRemove: (id) => axiosInstance.delete(`/students/${id}/force`),
+  trash: (params) => axiosInstance.get("/students/trash", { params }),
 };
 
 export default studentService;
