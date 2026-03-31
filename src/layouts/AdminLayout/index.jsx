@@ -125,7 +125,14 @@ const AdminLayout = () => {
           collapsed={collapsed}
           collapsedWidth={64}
           width={220}
-          className="sticky left-0 top-0 pt-4 h-[calc(100vh-64px)] overflow-auto border-r border-gray-100 bg-white shadow-[2px_0_8px_rgba(0,0,0,0.04)]"
+          style={{
+            position: "sticky",
+            top: 64,
+            height: "calc(100vh - 64px)",
+            overflowY: "auto",
+            zIndex: 10,
+          }}
+          className="transition-all left-0 pt-4 border-r border-gray-100 bg-white shadow-[2px_0_8px_rgba(0,0,0,0.04)]"
         >
           <Menu
             mode="inline"
@@ -133,7 +140,7 @@ const AdminLayout = () => {
               role == ROLES.ADMIN ? sidebarMenuItems : sidebarMenuItemsTeacher
             }
             onClick={({ key }) => navigate(key)}
-            className="border-r-0 pt-2 select-none"
+            className="border-r-0 pt-2 select-none [&_.ant-menu-item]:!mx-2 [&_.ant-menu-item]:!my-1 [&_.ant-menu-item]:rounded-lg [&_.ant-menu-item]:transition-all [&_.ant-menu-item]:duration-200 [&_.ant-menu-item:hover]:!bg-blue-50 [&_.ant-menu-item-selected]:!bg-blue-100 [&_.ant-menu-item-selected]:!text-blue-600 [&_.ant-menu-divider]:!my-3"
           />
         </Sider>
 

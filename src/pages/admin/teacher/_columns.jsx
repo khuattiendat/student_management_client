@@ -8,6 +8,7 @@ import {
   Typography,
 } from "antd";
 import { DeleteOutlined, EditOutlined, UserOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
 
 const { Text } = Typography;
 
@@ -64,6 +65,29 @@ export const buildColumns = ({ page, limit, onEdit, onDelete }) => [
             <Tag key={branch.id} className="rounded-full px-2 py-1">
               {branch.name}
             </Tag>
+          ))}
+        </div>
+      ) : (
+        "—"
+      ),
+  },
+  {
+    title: "Lớp",
+    dataIndex: "classes",
+    key: "classes",
+    width: 200,
+    render: (classes = []) =>
+      classes.length ? (
+        <div className="flex flex-wrap gap-1">
+          {classes.map((classItem) => (
+            <Link to={`/sessions/${classItem.id}`} key={classItem.id}>
+              <Tag
+                key={classItem.id}
+                className="rounded-full px-2 py-1 hover:!bg-blue-100 hover:!text-blue-600 transition"
+              >
+                {classItem.name}
+              </Tag>
+            </Link>
           ))}
         </div>
       ) : (

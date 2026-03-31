@@ -57,8 +57,6 @@ const TeacherCodeFormModal = ({
       handleClose();
       onSaved({ created: !editing });
     } catch (err) {
-      console.log(err);
-
       message.error(err?.error?.message || "Tạo mã giáo viên thất bại");
     } finally {
       setSaving(false);
@@ -72,7 +70,7 @@ const TeacherCodeFormModal = ({
       onCancel={handleClose}
       footer={null}
       centered
-      destroyOnClose
+      destroyOnHidden
       width={560}
     >
       <Form
@@ -96,7 +94,7 @@ const TeacherCodeFormModal = ({
           <Input
             placeholder="Nhập mã 6 chữ số"
             maxLength={6}
-            autoComplete="false"
+            autoComplete="off"
             suffix={
               !editing ? (
                 <Button type="link" size="small" onClick={handleGenerateCode}>

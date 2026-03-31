@@ -54,6 +54,7 @@ const ModalAddSession = ({ classId, open, onClose, onSubmit, isEdit }) => {
       onCancel={onClose}
       footer={null}
       centered
+      destroyOnHidden
     >
       <Form
         form={form}
@@ -122,7 +123,7 @@ const ModalAddSession = ({ classId, open, onClose, onSubmit, isEdit }) => {
               optionFilterProp="label"
               loading={sessionsLoading}
               options={sessionListData?.items.map((session) => ({
-                label: `Buổi ngày ${dayjs(session.sessionDate).format("DD-MM-YY")} `,
+                label: `Buổi ngày ${dayjs(session.sessionDate).format("DD-MM-YYYY")} `,
                 value: session.id,
               }))}
             />

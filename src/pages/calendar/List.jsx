@@ -141,41 +141,55 @@ export default function WeeklySchedule() {
   return (
     <div ref={wrapRef} className="min-h-screen bg-slate-100 font-sans">
       {/* ── Topbar ── */}
-      <div className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm px-6 h-14 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-slate-800">
-          <CalendarOutlined className="text-blue-500 text-base" />
-          <span className="font-bold text-[15px]">
-            Tuần từ{" "}
-            <span className="text-blue-500">
-              {days[0].format("DD/MM/YYYY")}
-            </span>
+      <div className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm px-3 sm:px-4 md:px-6 py-2 md:h-14 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
+        {/* Title */}
+        <div className="flex items-center gap-2 text-slate-800 text-sm md:text-base">
+          <CalendarOutlined className="text-blue-500 text-base md:text-lg" />
+          <span className="font-semibold md:font-bold">
+            Tuần <span className="hidden sm:inline">từ </span>
+            <span className="text-blue-500">{days[0].format("DD/MM")}</span>
             {" – "}
-            <span className="text-blue-500">
-              {days[6].format("DD/MM/YYYY")}
-            </span>
+            <span className="text-blue-500">{days[6].format("DD/MM")}</span>
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button icon={<LeftOutlined />} onClick={prevWeek} type="primary">
-            Tuần trước
+        {/* Actions */}
+        <div className="flex items-center justify-between md:justify-end gap-2">
+          {/* Prev */}
+          <Button
+            icon={<LeftOutlined />}
+            onClick={prevWeek}
+            type="primary"
+            className="flex-1 md:flex-none"
+          >
+            <span className="hidden sm:inline">Tuần trước</span>
           </Button>
-          <Button icon={<HomeOutlined />} onClick={goToday}>
-            Hôm nay
+
+          {/* Today */}
+          <Button
+            icon={<HomeOutlined />}
+            onClick={goToday}
+            className="flex-1 md:flex-none"
+          >
+            <span className="hidden sm:inline">Hôm nay</span>
           </Button>
+
+          {/* Next */}
           <Button
             icon={<RightOutlined />}
             onClick={nextWeek}
             type="primary"
             iconPosition="end"
+            className="flex-1 md:flex-none"
           >
-            Tuần sau
+            <span className="hidden sm:inline">Tuần sau</span>
           </Button>
         </div>
       </div>
 
-      <div className="bg-white border-b border-slate-100 px-6 py-2 flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2 flex-wrap">
+      <div className="bg-white border-b border-slate-100 px-3 sm:px-4 md:px-6 py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        {/* Filter */}
+        <div className="w-full sm:w-auto">
           <Select
             value={selectedBranchId}
             placeholder="Lọc theo cơ sở"
@@ -184,13 +198,14 @@ export default function WeeklySchedule() {
             onChange={(value) => {
               setSelectedBranchId(value ?? null);
             }}
-            className="w-52"
             showSearch
             optionFilterProp="label"
+            className="w-full sm:w-56 md:w-60"
           />
         </div>
 
-        <span className="text-xs font-medium text-slate-500">
+        {/* Total */}
+        <span className="text-xs sm:text-sm font-medium text-slate-500 text-right sm:text-left">
           {isCalendarLoading || isCalendarValidating
             ? "Đang tải lịch..."
             : `${calendarData?.total ?? 0} buổi học`}
@@ -251,7 +266,7 @@ const CalenderRender = ({
   setSelected,
 }) => {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden w-full">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-scroll w-full">
       {/* Header row 1 – day names */}
       <div className="flex border-b border-slate-200">
         <div

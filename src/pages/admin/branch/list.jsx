@@ -5,6 +5,7 @@ import InputSearch from "../../../components/common/InputSearch";
 import { useBranchList } from "./useBranchList";
 import { buildColumns } from "./_columns";
 import BranchFormModal from "./BranchFormModal";
+import Heading from "../../../components/common/Heading";
 
 const { Title } = Typography;
 
@@ -59,10 +60,8 @@ const ListBranch = () => {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <Title level={2} className="mb-0!">
-          Danh sách cơ sở
-        </Title>
+      <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
+        <Heading title="Danh sách cơ sở" />
         <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
           Thêm mới
         </Button>
@@ -96,6 +95,7 @@ const ListBranch = () => {
         }}
         bordered
         size="middle"
+        scroll={{ x: "max-content" }}
       />
 
       <BranchFormModal

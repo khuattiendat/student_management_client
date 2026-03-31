@@ -5,6 +5,7 @@ import InputSearch from "../../../components/common/InputSearch";
 import { usePackageList } from "./usePackageList";
 import { buildColumns } from "./_columns";
 import PackageFormModal from "./PackageFormModal";
+import Heading from "../../../components/common/Heading";
 
 const { Title } = Typography;
 
@@ -68,33 +69,38 @@ const ListPackage = () => {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <Title level={2} className="mb-0!">
-          Danh sách gói học
-        </Title>
+      <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
+        <Heading title="Danh sách gói học" />
         <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
           Thêm mới
         </Button>
       </div>
 
       <div className="mb-4">
-        <Space wrap size="middle">
-          <InputSearch
-            value={search ?? ""}
-            onSearch={handleSearch}
-            placeholder="Tìm theo tên hoặc loại gói..."
-            className="max-w-xs"
-          />
-          <Select
-            value={type ?? ""}
-            options={typeOptions}
-            onChange={(value) => {
-              setPage(1);
-              setType(value || null);
-            }}
-            className="w-48"
-          />
-        </Space>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+          {/* Search */}
+          <div className="w-full md:max-w-xs">
+            <InputSearch
+              value={search ?? ""}
+              onSearch={handleSearch}
+              placeholder="Tìm theo tên hoặc loại gói..."
+              className="w-full"
+            />
+          </div>
+
+          {/* Type */}
+          <div className="w-full sm:w-48">
+            <Select
+              value={type ?? ""}
+              options={typeOptions}
+              onChange={(value) => {
+                setPage(1);
+                setType(value || null);
+              }}
+              className="w-full"
+            />
+          </div>
+        </div>
       </div>
 
       <Table
@@ -116,6 +122,7 @@ const ListPackage = () => {
         }}
         bordered
         size="middle"
+        scroll={{ x: "max-content" }}
       />
 
       <PackageFormModal

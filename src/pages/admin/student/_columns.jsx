@@ -1,12 +1,35 @@
-import { Button, Popconfirm, Space, Tag, Tooltip, Typography } from "antd";
+import {
+  Button,
+  DatePicker,
+  Input,
+  Popconfirm,
+  Space,
+  Tag,
+  Tooltip,
+  Typography,
+} from "antd";
 import {
   DeleteOutlined,
   EditOutlined,
+  InfoCircleOutlined,
+  MessageOutlined,
+  PhoneOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-
 const { Text } = Typography;
+const filterByCurriculum = (data = []) =>
+  Object.values(
+    data.reduce((acc, item) => {
+      const key = item?.package?.info?.curriculum || `id-${item.id}`;
+
+      if (!acc[key] || item.remainingSessions > acc[key].remainingSessions) {
+        acc[key] = item;
+      }
+
+      return acc;
+    }, {}),
+  );
 
 const hasLowRemainingSessions = (record = {}) => {
   const candidateArrays = [
@@ -19,7 +42,9 @@ const hasLowRemainingSessions = (record = {}) => {
   const detailedRows = candidateArrays.find((item) => Array.isArray(item));
 
   if (Array.isArray(detailedRows) && detailedRows.length > 0) {
-    return detailedRows.some((item) => Number(item?.remainingSessions) <= 3);
+    const filtered = filterByCurriculum(detailedRows);
+
+    return filtered.some((item) => Number(item?.remainingSessions) <= 3);
   }
 
   return Number(record?.remainingSessions) <= 3;
@@ -33,7 +58,10 @@ export const buildColumns = ({
   onDelete,
   onViewAttendances,
   onViewRemainingSessions,
+  onViewDetail,
   canManage,
+  onUpdateNotifications,
+  onUpdateCycleStartDate,
 }) => [
   {
     title: "STT",
@@ -48,7 +76,6 @@ export const buildColumns = ({
     key: "name",
     render: (_, record) => {
       const isLowRemainingSessions = hasLowRemainingSessions(record);
-
       return (
         <div className="flex flex-col">
           <Text
@@ -64,19 +91,23 @@ export const buildColumns = ({
     },
   },
   {
-    title: "Ngày sinh",
+    title: "Năm sinh",
     dataIndex: "birthday",
     key: "birthday",
   },
   {
-    title: "Địa chỉ",
-    dataIndex: "address",
-    key: "address",
-    render: (_, record) => {
-      const { addressDetail, wardName, provinceName } = record;
-      const parts = [addressDetail, wardName, provinceName].filter(Boolean);
-      return parts.length ? parts.join(", ") : "—";
-    },
+    title: "Ngày bắt đầu chu kỳ",
+    dataIndex: "cycleStartDate",
+    width: 200,
+    key: "cycleStartDate",
+    render: (value, record) => (
+      <DatePicker
+        value={value ? dayjs(value) : null}
+        format="DD/MM/YYYY"
+        disabledDate={(current) => current && current.isAfter(dayjs())}
+        onChange={(value) => onUpdateCycleStartDate(record.id, value)}
+      />
+    ),
   },
   {
     title: "Cơ sở",
@@ -84,54 +115,6 @@ export const buildColumns = ({
     width: 200,
     key: "branch",
     render: (branch) => branch?.name || "—",
-  },
-  {
-    title: "Lớp",
-    dataIndex: "classStudents",
-    key: "classStudents",
-    render: (classStudents = []) =>
-      classStudents.length ? (
-        <div className="flex flex-col gap-1">
-          {classStudents.map((item) => (
-            <Tag key={item.id}>{item?.classEntity?.name}</Tag>
-          ))}
-        </div>
-      ) : (
-        "—"
-      ),
-  },
-  {
-    title: "Phụ huynh",
-    dataIndex: "parents",
-    key: "parents",
-    render: (parents = []) =>
-      parents.length ? (
-        <div className="flex flex-col gap-1">
-          {parents.map((parent) => (
-            <Text key={parent.id || `${parent.name}-${parent.phone}`}>
-              {parent.name} ({parent.phone || "—"})
-            </Text>
-          ))}
-        </div>
-      ) : (
-        "—"
-      ),
-  },
-  {
-    title: "Gói học",
-    dataIndex: "packages",
-    width: 400,
-    key: "packages",
-    render: (packages = []) =>
-      packages.length ? (
-        <div className="flex flex-wrap gap-1">
-          {packages.map((item) => (
-            <Tag key={item.id}>{item.name}</Tag>
-          ))}
-        </div>
-      ) : (
-        "—"
-      ),
   },
   {
     title: "Số buổi đã học",
@@ -162,10 +145,57 @@ export const buildColumns = ({
     ),
   },
   {
-    title: "Ngày tạo",
-    dataIndex: "createdAt",
-    key: "createdAt",
-    render: (value) => (value ? dayjs(value).format("DD/MM/YYYY") : "—"),
+    title: "Thông báo",
+    dataIndex: "notifications",
+    key: "notifications",
+    render: (_, record) => {
+      return (
+        <Space>
+          {canManage ? (
+            <div className="flex items-center gap-2">
+              <Tooltip title="Đã nhắn tin">
+                <div className="flex items-center gap-1">
+                  <MessageOutlined />
+                  <Input
+                    type="checkbox"
+                    className="cursor-pointer"
+                    checked={record.isTexted}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdateNotifications(
+                        record.id,
+                        "isTexted",
+                        !record.isTexted,
+                      );
+                    }}
+                  />
+                </div>
+              </Tooltip>
+              <Tooltip title="Đã gọi điện">
+                <div className="flex items-center gap-1">
+                  <PhoneOutlined />
+                  <Input
+                    type="checkbox"
+                    className="cursor-pointer"
+                    checked={record.isCalled}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdateNotifications(
+                        record.id,
+                        "isCalled",
+                        !record.isCalled,
+                      );
+                    }}
+                  />
+                </div>
+              </Tooltip>
+            </div>
+          ) : (
+            "—"
+          )}
+        </Space>
+      );
+    },
   },
   {
     title: "Hành động",
@@ -176,6 +206,13 @@ export const buildColumns = ({
       <Space>
         {canManage ? (
           <>
+            <Tooltip title="Thông tin chi tiết">
+              <Button
+                type="text"
+                icon={<InfoCircleOutlined className="!text-blue-500" />}
+                onClick={() => onViewDetail(record)}
+              />
+            </Tooltip>
             <Tooltip title="Chỉnh sửa">
               <Button
                 type="text"

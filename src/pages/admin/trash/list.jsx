@@ -7,6 +7,7 @@ import studentService from "../../../services/studentService";
 import { buildClassColumns } from "./column/classColoum";
 import { buildBranchColumns } from "./column/branchColoum";
 import { buildStudentColumns } from "./column/studentColoum";
+import Heading from "../../../components/common/Heading";
 
 const { Title } = Typography;
 
@@ -228,16 +229,12 @@ const ListTrash = () => {
   return (
     <>
       <div className="mb-4 flex items-center justify-between">
-        <Title level={2} className="mb-0!">
-          Thùng rác
-        </Title>
+        <Heading title="Danh sách đã xóa" />
       </div>
       <Divider />
 
       <div className="mb-4 flex items-center justify-between">
-        <Title level={2} className="mb-0!">
-          Lớp học đã xóa
-        </Title>
+        <Heading title="Lớp học đã xóa" />
       </div>
 
       <Table
@@ -247,6 +244,7 @@ const ListTrash = () => {
         loading={loadingClassTable}
         bordered
         size="middle"
+        scroll={{ x: "max-content" }}
         pagination={{
           current: pageClass,
           pageSize: limitClass,
@@ -262,9 +260,7 @@ const ListTrash = () => {
       />
 
       <div className="mb-4 mt-8 flex items-center justify-between">
-        <Title level={2} className="mb-0!">
-          Cơ sở đã xóa
-        </Title>
+        <Heading title="Cơ sở đã xóa" />
       </div>
 
       <Table
@@ -274,6 +270,7 @@ const ListTrash = () => {
         loading={loadingBranchTable}
         bordered
         size="middle"
+        scroll={{ x: "max-content" }}
         pagination={{
           current: pageBranch,
           pageSize: limitBranch,
@@ -289,9 +286,7 @@ const ListTrash = () => {
       />
 
       <div className="mb-4 mt-8 flex items-center justify-between">
-        <Title level={2} className="mb-0!">
-          Học viên đã xóa
-        </Title>
+        <Heading title="Học viên đã xóa" />
       </div>
 
       <Table
@@ -301,6 +296,7 @@ const ListTrash = () => {
         loading={loadingStudentTable}
         bordered
         size="middle"
+        scroll={{ x: "max-content" }}
         pagination={{
           current: pageStudent,
           pageSize: limitStudent,

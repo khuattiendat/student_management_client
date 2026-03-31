@@ -243,7 +243,7 @@ const RenewCourseModal = ({
       onCancel={handleClose}
       footer={null}
       centered
-      destroyOnClose
+      destroyOnHidden
       width={760}
     >
       <Form

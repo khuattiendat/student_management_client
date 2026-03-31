@@ -109,7 +109,7 @@ const PackageFormModal = ({ open, onClose, editing, onSaved }) => {
       onCancel={handleClose}
       footer={null}
       centered
-      destroyOnClose
+      destroyOnHidden
     >
       <Form
         form={form}

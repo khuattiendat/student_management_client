@@ -7,8 +7,14 @@ import teacherService from "../../../services/teacherService";
 import { useTeacherCodeList } from "./useTeacherCodeList";
 import { buildColumns } from "./_columns";
 import TeacherCodeFormModal from "./TeacherCodeFormModal";
+import Heading from "../../../components/common/Heading";
 
 const { Title } = Typography;
+const statusOptions = [
+  { label: "Tất cả trạng thái", value: "" },
+  { label: "Chưa dùng", value: "active" },
+  { label: "Đã dùng", value: "inactive" },
+];
 
 const ListTeacherCode = () => {
   const {
@@ -25,6 +31,8 @@ const ListTeacherCode = () => {
     setTeacherId,
     fetchData,
     handleDelete,
+    setStatus,
+    status,
   } = useTeacherCodeList();
 
   const { data: teacherOptions = [] } = useSWR(
@@ -80,10 +88,8 @@ const ListTeacherCode = () => {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <Title level={2} className="mb-0!">
-          Quản lý mã giáo viên
-        </Title>
+      <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
+        <Heading title="Danh sách mã giáo viên" />
 
         <Button
           type="primary"
@@ -98,29 +104,48 @@ const ListTeacherCode = () => {
       </div>
 
       <div className="mb-4">
-        <Space wrap size="middle">
-          <InputSearch
-            value={search ?? ""}
-            onSearch={handleSearch}
-            placeholder="Tìm theo mã..."
-            className="max-w-xs"
-          />
+        <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:gap-4">
+          {/* Search */}
+          <div className="w-full md:max-w-xs">
+            <InputSearch
+              value={search ?? ""}
+              onSearch={handleSearch}
+              placeholder="Tìm theo mã..."
+              className="w-full"
+            />
+          </div>
 
-          <Select
-            value={teacherId ?? ""}
-            options={[
-              { label: "Tất cả giáo viên", value: "" },
-              ...teacherOptions,
-            ]}
-            onChange={(value) => {
-              setPage(1);
-              setTeacherId(value || null);
-            }}
-            className="w-64"
-            showSearch
-            optionFilterProp="label"
-          />
-        </Space>
+          {/* Teacher */}
+          <div className="w-full sm:w-64">
+            <Select
+              value={teacherId ?? ""}
+              options={[
+                { label: "Tất cả giáo viên", value: "" },
+                ...teacherOptions,
+              ]}
+              onChange={(value) => {
+                setPage(1);
+                setTeacherId(value || null);
+              }}
+              className="w-full"
+              showSearch
+              optionFilterProp="label"
+            />
+          </div>
+
+          {/* Status */}
+          <div className="w-full sm:w-64">
+            <Select
+              value={status ?? ""}
+              options={statusOptions}
+              onChange={(value) => {
+                setPage(1);
+                setStatus(value || null);
+              }}
+              className="w-full"
+            />
+          </div>
+        </div>
       </div>
 
       <Table
@@ -142,6 +167,7 @@ const ListTeacherCode = () => {
         }}
         bordered
         size="middle"
+        scroll={{ x: "max-content" }}
       />
 
       <TeacherCodeFormModal

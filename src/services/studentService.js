@@ -36,6 +36,31 @@ const studentService = {
   restore: (id) => axiosInstance.put(`/students/${id}/restore`),
   forceRemove: (id) => axiosInstance.delete(`/students/${id}/force`),
   trash: (params) => axiosInstance.get("/students/trash", { params }),
+  toggleIsCalled: (id, isCalled) =>
+    axiosInstance.put(`/students/${id}/is-called`, { isCalled }),
+  toggleIsTexted: (id, isTexted) =>
+    axiosInstance.put(`/students/${id}/is-texted`, { isTexted }),
+  updateCycleStartDate: (id, cycleStartDate) =>
+    axiosInstance.put(`/students/${id}/cycle-start-date`, { cycleStartDate }),
+  getCycles: (params) => {
+    const { classId, studentIds } = params;
+    const query = new URLSearchParams();
+    if (classId !== undefined && classId !== null && classId !== "") {
+      query.append("classId", String(classId));
+    }
+
+    const normalizedPackageIds = Array.isArray(studentIds)
+      ? studentIds
+      : studentIds !== undefined && studentIds !== null && studentIds !== ""
+        ? [studentIds]
+        : [];
+
+    normalizedPackageIds.forEach((id) => {
+      query.append("studentIds", String(id));
+    });
+
+    return axiosInstance.get(`/students/cycles?${query.toString()}`);
+  },
 };
 
 export default studentService;

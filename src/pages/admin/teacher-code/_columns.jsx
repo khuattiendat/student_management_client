@@ -30,7 +30,7 @@ export const buildColumns = ({ page, limit, onDelete, teacherNameById }) => [
     key: "expiresAt",
     render: (value) => {
       if (!value) return "—";
-      const expired = dayjs(value).isBefore(dayjs(), "day");
+      const expired = dayjs(value).isBefore(dayjs(), "hour");
       return (
         <Tag color={expired ? "red" : "green"}>
           {dayjs(value).format("DD/MM/YYYY HH:mm")}

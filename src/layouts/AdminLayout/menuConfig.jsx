@@ -18,6 +18,7 @@ export const buildSidebarMenuItems = () => [
     icon: <DashboardFilled />,
     label: "Tổng quan hệ thống",
   },
+  { type: "divider" },
   {
     key: "/branches",
     icon: <BankOutlined />,
@@ -53,9 +54,10 @@ export const buildSidebarMenuItems = () => [
     icon: <KeyOutlined />,
     label: "Quản lý mã",
   },
+  { type: "divider" },
   {
     key: "/trash",
-    icon: <InboxOutlined color="red" />,
+    icon: <InboxOutlined color="red" className="!text-red-600" />,
     label: "Thùng rác",
   },
 ];

@@ -28,7 +28,6 @@ const ModalInfo = ({ open, close }) => {
       phone: user?.phone || "",
       userName: user?.userName || "",
     });
-    console.log(user);
   }, [open, user, form]);
 
   const handleClose = () => {
@@ -64,7 +63,7 @@ const ModalInfo = ({ open, close }) => {
       onCancel={handleClose}
       footer={null}
       centered
-      destroyOnClose
+      destroyOnHidden
     >
       <div className="flex flex-col items-center gap-3 py-4">
         <Avatar size={72} icon={<UserOutlined />} className="bg-blue-500" />

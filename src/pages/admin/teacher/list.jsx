@@ -7,6 +7,7 @@ import branchService from "../../../services/branchService";
 import { useTeacherList } from "./useTeacherList";
 import { buildColumns } from "./_columns";
 import TeacherFormModal from "./TeacherFormModal";
+import Heading from "../../../components/common/Heading";
 
 const { Title } = Typography;
 
@@ -87,44 +88,53 @@ const ListTeacher = () => {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <Title level={2} className="mb-0!">
-          Danh sách giáo viên
-        </Title>
+      <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
+        <Heading title="Danh sách giáo viên" />
         <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
           Thêm mới
         </Button>
       </div>
 
       <div className="mb-4">
-        <Space wrap size="middle">
-          <InputSearch
-            value={search ?? ""}
-            onSearch={handleSearch}
-            placeholder="Tìm theo tên hoặc tên đăng nhập..."
-            className="max-w-xs"
-          />
-          <Select
-            value={status ?? ""}
-            options={statusOptions}
-            onChange={(value) => {
-              setPage(1);
-              setStatus(value || null);
-            }}
-            className="w-56"
-          />
-          <Select
-            value={branchId ?? ""}
-            options={allBranchOptions}
-            onChange={(value) => {
-              setPage(1);
-              setBranchId(value || null);
-            }}
-            className="w-56"
-            showSearch
-            optionFilterProp="label"
-          />
-        </Space>
+        <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
+          {/* Search */}
+          <div className="w-full md:max-w-xs">
+            <InputSearch
+              value={search ?? ""}
+              onSearch={handleSearch}
+              placeholder="Tìm theo tên hoặc tên đăng nhập..."
+              className="w-full"
+            />
+          </div>
+
+          {/* Status */}
+          <div className="w-full md:w-56">
+            <Select
+              value={status ?? ""}
+              options={statusOptions}
+              onChange={(value) => {
+                setPage(1);
+                setStatus(value || null);
+              }}
+              className="w-full"
+            />
+          </div>
+
+          {/* Branch */}
+          <div className="w-full md:w-56">
+            <Select
+              value={branchId ?? ""}
+              options={allBranchOptions}
+              onChange={(value) => {
+                setPage(1);
+                setBranchId(value || null);
+              }}
+              className="w-full"
+              showSearch
+              optionFilterProp="label"
+            />
+          </div>
+        </div>
       </div>
 
       <Table
@@ -146,6 +156,7 @@ const ListTeacher = () => {
         }}
         bordered
         size="middle"
+        scroll={{ x: "max-content" }}
       />
 
       <TeacherFormModal

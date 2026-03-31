@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { App, Modal, Table, Tag, Typography, Select, Space } from "antd";
 import dayjs from "dayjs";
 import useSWR from "swr";
@@ -14,32 +14,29 @@ const statusConfig = {
 
 const StudentAttendanceModal = ({ open, onClose, student }) => {
   const { message } = App.useApp();
+
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [classFilter, setClassFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [classes, setClasses] = useState([]);
+  const [classFilter, setClassFilter] = useState();
+  const [statusFilter, setStatusFilter] = useState();
 
-  // SWR key includes all filter and pagination params
+  // 👉 SWR key
   const swrKey =
     open && student?.id
       ? ["attendances", student.id, page, limit, classFilter, statusFilter]
       : null;
 
-  // SWR fetcher function
+  // 👉 Fetcher
   const fetcher = async () => {
-    const params = { page, limit };
+    const params = {
+      page,
+      limit,
+      ...(classFilter && { classId: classFilter }),
+      ...(statusFilter && { status: statusFilter }),
+    };
 
-    if (classFilter) {
-      params.classId = classFilter;
-    }
-
-    if (statusFilter) {
-      params.status = statusFilter;
-    }
-
-    const response = await studentService.attendances(student.id, params);
-    return response?.data ?? response;
+    const res = await studentService.attendances(student.id, params);
+    return res?.data ?? res;
   };
 
   const { data, isLoading, error } = useSWR(swrKey, fetcher, {
@@ -49,91 +46,72 @@ const StudentAttendanceModal = ({ open, onClose, student }) => {
 
   const items = data?.items ?? [];
   const total = data?.pagination?.total ?? 0;
+  const studentClass = data?.studentClass ?? [];
 
-  // Handle SWR errors
+  // 👉 Error handler
   useEffect(() => {
     if (error) {
       message.error(error?.message || "Không thể tải lịch sử điểm danh");
     }
-  }, [error, message]);
+  }, [error]);
 
-  // Reset states and extract classes when modal opens/closes or data changes
+  // 👉 Reset khi đóng modal
   useEffect(() => {
     if (!open) {
       setPage(1);
       setLimit(10);
-      setClassFilter("");
-      setStatusFilter("");
-      setClasses([]);
+      setClassFilter(undefined);
+      setStatusFilter(undefined);
     }
   }, [open]);
 
-  // Extract unique classes from attendance items
-  useEffect(() => {
-    if (items && items.length > 0) {
-      const uniqueClasses = new Map();
-      items.forEach((item) => {
-        const classId = item?.session?.classEntity?.id;
-        const className = item?.session?.classEntity?.name;
-        if (classId && className) {
-          uniqueClasses.set(classId, className);
-        }
-      });
-      setClasses(Array.from(uniqueClasses, ([id, name]) => ({ id, name })));
-    }
-  }, [items]);
-
-  const columns = [
-    {
-      title: "STT",
-      width: 60,
-      align: "center",
-      render: (_, __, index) => (page - 1) * limit + index + 1,
-    },
-    {
-      title: "Ngày học",
-      dataIndex: ["session", "sessionDate"],
-      key: "sessionDate",
-      render: (value) => (value ? dayjs(value).format("DD/MM/YYYY") : "—"),
-    },
-    {
-      title: "Khung giờ",
-      key: "time",
-      render: (_, record) => {
-        const startTime = record?.session?.startTime?.slice(0, 5);
-        const endTime = record?.session?.endTime?.slice(0, 5);
-        if (!startTime || !endTime) return "—";
-        return `${startTime} - ${endTime}`;
+  // 👉 Columns (memo)
+  const columns = useMemo(
+    () => [
+      {
+        title: "STT",
+        width: 60,
+        align: "center",
+        render: (_, __, index) => (page - 1) * limit + index + 1,
       },
-    },
-    {
-      title: "Lớp học",
-      dataIndex: ["session", "classEntity", "name"],
-      key: "className",
-      render: (value) => value || "—",
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => {
-        const normalizedStatus = String(status || "").toLowerCase();
-        const config = statusConfig[normalizedStatus];
-
-        if (!config) {
-          return <Tag>{status || "—"}</Tag>;
-        }
-
-        return <Tag color={config.color}>{config.label}</Tag>;
+      {
+        title: "Ngày học",
+        dataIndex: ["session", "sessionDate"],
+        render: (value) => (value ? dayjs(value).format("DD/MM/YYYY") : "—"),
       },
-    },
-    {
-      title: "Điểm đánh giá",
-      dataIndex: "rate",
-      key: "rate",
-      render: (value) => value ?? "—",
-    },
-  ];
+      {
+        title: "Khung giờ",
+        render: (_, record) => {
+          const start = record?.session?.startTime?.slice(0, 5);
+          const end = record?.session?.endTime?.slice(0, 5);
+          return start && end ? `${start} - ${end}` : "—";
+        },
+      },
+      {
+        title: "Lớp học",
+        dataIndex: ["session", "classEntity", "name"],
+        render: (value) => value || "—",
+      },
+      {
+        title: "Trạng thái",
+        dataIndex: "status",
+        render: (status) => {
+          const config = statusConfig[String(status || "").toLowerCase()];
+          return config ? (
+            <Tag color={config.color}>{config.label}</Tag>
+          ) : (
+            <Tag>{status || "—"}</Tag>
+          );
+        },
+      },
+      {
+        title: "Điểm đánh giá",
+        dataIndex: "rate",
+        render: (value) => value ?? "—",
+      },
+    ],
+    [page, limit],
+  );
 
   return (
     <Modal
@@ -141,35 +119,33 @@ const StudentAttendanceModal = ({ open, onClose, student }) => {
       open={open}
       onCancel={onClose}
       footer={null}
-      centered
       width={1000}
       destroyOnClose
     >
+      {/* Filters */}
       <Space className="mb-4 gap-4" wrap>
         <Select
           placeholder="Lọc theo lớp học"
           style={{ width: 200 }}
           allowClear
-          value={classFilter || undefined}
+          value={classFilter}
           onChange={(value) => {
-            setClassFilter(value || "");
+            setClassFilter(value);
             setPage(1);
           }}
-          options={[
-            ...classes.map((cls) => ({
-              label: cls.name,
-              value: cls.id,
-            })),
-          ]}
+          options={studentClass.map((cls) => ({
+            label: cls.name,
+            value: cls.id,
+          }))}
         />
 
         <Select
           placeholder="Lọc theo trạng thái"
           style={{ width: 200 }}
           allowClear
-          value={statusFilter || undefined}
+          value={statusFilter}
           onChange={(value) => {
-            setStatusFilter(value || "");
+            setStatusFilter(value);
             setPage(1);
           }}
           options={[
@@ -180,6 +156,7 @@ const StudentAttendanceModal = ({ open, onClose, student }) => {
         />
       </Space>
 
+      {/* Table */}
       <Table
         rowKey="id"
         dataSource={items}
@@ -187,6 +164,7 @@ const StudentAttendanceModal = ({ open, onClose, student }) => {
         loading={isLoading}
         bordered
         size="middle"
+        scroll={{ x: "max-content" }}
         pagination={{
           current: page,
           pageSize: limit,
@@ -194,9 +172,9 @@ const StudentAttendanceModal = ({ open, onClose, student }) => {
           showSizeChanger: true,
           pageSizeOptions: ["10", "20", "50"],
           showTotal: (value) => `Tổng ${value} bản ghi điểm danh`,
-          onChange: (nextPage, nextLimit) => {
-            setPage(nextPage);
-            setLimit(nextLimit);
+          onChange: (p, l) => {
+            setPage(p);
+            setLimit(l);
           },
         }}
       />

@@ -20,12 +20,29 @@ export function useStudentList() {
     "branchId",
     parseAsString.withDefault(""),
   );
-  const [packageId, setPackageId] = useQueryState(
-    "packageId",
+  const [classId, setClassId] = useQueryState(
+    "classId",
+    parseAsString.withDefault(""),
+  );
+  const [isCalled, setIsCalled] = useQueryState(
+    "isCalled",
+    parseAsString.withDefault(""),
+  );
+  const [isTexted, setIsTexted] = useQueryState(
+    "isTexted",
     parseAsString.withDefault(""),
   );
 
-  const swrKey = ["students", page, limit, search, branchId, packageId];
+  const swrKey = [
+    "students",
+    page,
+    limit,
+    search,
+    branchId,
+    classId,
+    isCalled,
+    isTexted,
+  ];
 
   const { data, error, isLoading, isValidating, mutate } = useSWR(
     swrKey,
@@ -33,7 +50,13 @@ export function useStudentList() {
       const params = { page, limit };
       if (search) params.search = search;
       if (branchId) params.branchId = Number(branchId);
-      if (packageId) params.packageId = Number(packageId);
+      if (classId) params.classId = Number(classId);
+      if (isCalled !== undefined && isCalled !== "") {
+        params.isCalled = Number(isCalled);
+      }
+      if (isTexted !== undefined && isTexted !== "") {
+        params.isTexted = Number(isTexted);
+      }
 
       const response = await studentService.list(params);
       return response?.data ?? { items: [], pagination: { total: 0 } };
@@ -78,9 +101,14 @@ export function useStudentList() {
     setSearch,
     branchId,
     setBranchId,
-    packageId,
-    setPackageId,
+    classId,
+    setClassId,
     fetchData,
     handleDelete,
+    isCalled,
+    setIsCalled,
+    isTexted,
+    setIsTexted,
+    mutate,
   };
 }

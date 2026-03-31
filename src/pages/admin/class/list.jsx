@@ -12,6 +12,7 @@ import { ROLES } from "../../../utils/constants";
 import { useClassList } from "./useClassList";
 import { buildColumns } from "./_columns";
 import ClassFormModal from "./ClassFormModal";
+import Heading from "../../../components/common/Heading";
 
 const { Title } = Typography;
 
@@ -173,10 +174,8 @@ const ListClass = () => {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between">
-        <Title level={2} className="mb-0!">
-          Danh sách lớp học
-        </Title>
+      <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
+        <Heading title="Danh sách lớp học" />
         {canManage ? (
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
             Thêm mới
@@ -185,74 +184,97 @@ const ListClass = () => {
       </div>
 
       <div className="mb-4">
-        <Space wrap size="middle">
-          <InputSearch
-            value={search ?? ""}
-            onSearch={handleSearch}
-            placeholder="Tìm theo tên lớp..."
-            className="max-w-xs"
-          />
-          <Select
-            value={branchId ?? ""}
-            options={allBranchOptions}
-            onChange={(value) => {
-              setPage(1);
-              setBranchId(value || null);
-            }}
-            className="w-48"
-            showSearch
-            optionFilterProp="label"
-          />
-          <Select
-            value={status ?? ""}
-            options={statusOptions}
-            onChange={(value) => {
-              setPage(1);
-              setStatus(value || null);
-            }}
-            className="w-48"
-          />
-          {canManage ? (
+        <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:gap-4">
+          {/* Search */}
+          <div className="w-full md:max-w-xs">
+            <InputSearch
+              value={search ?? ""}
+              onSearch={handleSearch}
+              placeholder="Tìm theo tên lớp..."
+              className="w-full"
+            />
+          </div>
+
+          {/* Branch */}
+          <div className="w-full sm:w-48">
             <Select
-              value={teacherId ?? ""}
-              options={[
-                { label: "Tất cả giáo viên", value: "" },
-                ...teacherOptions,
-              ]}
+              value={branchId ?? ""}
+              options={allBranchOptions}
               onChange={(value) => {
                 setPage(1);
-                setTeacherId(value || null);
+                setBranchId(value || null);
               }}
-              className="w-56"
+              className="w-full"
               showSearch
               optionFilterProp="label"
             />
-          ) : null}
-          <Select
-            value={type ?? ""}
-            options={typeOptions}
-            onChange={(value) => {
-              setPage(1);
-              setType(value || null);
-            }}
-            className="w-48"
-          />
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={() => {
-              setPage(1);
-              setSearch(null);
-              setStatus(null);
-              setBranchId(null);
-              setTeacherId(null);
-              setPackageId(null);
-              setType(null);
-            }}
-            className="flex items-center gap-2 rounded-lg font-medium bg-gray-100! hover:bg-gray-200!"
-          >
-            Đặt lại
-          </Button>
-        </Space>
+          </div>
+
+          {/* Status */}
+          <div className="w-full sm:w-48">
+            <Select
+              value={status ?? ""}
+              options={statusOptions}
+              onChange={(value) => {
+                setPage(1);
+                setStatus(value || null);
+              }}
+              className="w-full"
+            />
+          </div>
+
+          {/* Teacher */}
+          {canManage && (
+            <div className="w-full sm:w-56">
+              <Select
+                value={teacherId ?? ""}
+                options={[
+                  { label: "Tất cả giáo viên", value: "" },
+                  ...teacherOptions,
+                ]}
+                onChange={(value) => {
+                  setPage(1);
+                  setTeacherId(value || null);
+                }}
+                className="w-full"
+                showSearch
+                optionFilterProp="label"
+              />
+            </div>
+          )}
+
+          {/* Type */}
+          <div className="w-full sm:w-48">
+            <Select
+              value={type ?? ""}
+              options={typeOptions}
+              onChange={(value) => {
+                setPage(1);
+                setType(value || null);
+              }}
+              className="w-full"
+            />
+          </div>
+
+          {/* Reset button */}
+          <div className="w-full sm:w-auto">
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => {
+                setPage(1);
+                setSearch(null);
+                setStatus(null);
+                setBranchId(null);
+                setTeacherId(null);
+                setPackageId(null);
+                setType(null);
+              }}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg font-medium bg-gray-100! hover:bg-gray-200!"
+            >
+              Đặt lại
+            </Button>
+          </div>
+        </div>
       </div>
 
       <Table
@@ -294,6 +316,7 @@ const ListClass = () => {
         onCancel={() => setPackageModalOpen(false)}
         footer={null}
         width={700}
+        destroyOnHidden
       >
         <Table
           rowKey="id"
@@ -301,6 +324,7 @@ const ListClass = () => {
           pagination={false}
           size="small"
           locale={{ emptyText: "Lớp học chưa có gói học" }}
+          scroll={{ x: "max-content" }}
           columns={[
             {
               title: "Tên gói",

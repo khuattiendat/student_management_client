@@ -146,6 +146,9 @@ const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
             </Tag>
           );
         }
+        if (record.packageType === "school_subject") {
+          return <Tag color="gold">Gói môn học</Tag>;
+        }
 
         return "—";
       },
@@ -180,7 +183,7 @@ const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
       footer={null}
       centered
       width={900}
-      destroyOnClose
+      destroyOnHidden
     >
       <Table
         rowKey="id"
@@ -191,6 +194,7 @@ const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
         size="middle"
         pagination={false}
         locale={{ emptyText: "Không có dữ liệu buổi còn lại" }}
+        scroll={{ x: "max-content" }}
       />
     </Modal>
   );

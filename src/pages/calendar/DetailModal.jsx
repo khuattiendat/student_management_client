@@ -4,9 +4,11 @@ import {
   TagOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { Modal, Tag } from "antd";
+import { Button, Modal, Tag } from "antd";
+import { useNavigate } from "react-router-dom";
 
 const DetailModal = ({ session, onClose, TYPE_CONFIG, getConfig }) => {
+  const navigate = useNavigate();
   const cfg = getConfig(session);
   const typeLabel =
     session.class.status === "completed"
@@ -78,6 +80,15 @@ const DetailModal = ({ session, onClose, TYPE_CONFIG, getConfig }) => {
             </div>
           </div>
         ))}
+        <Button
+          type="primary"
+          block
+          onClick={() => {
+            navigate(`/sessions/${session?.class?.id}`);
+          }}
+        >
+          Điểm danh
+        </Button>
       </div>
     </Modal>
   );

@@ -449,6 +449,12 @@ const StudentFormModal = ({
           packageIds: values.packageIds ?? [],
         };
 
+        if (payload.packageIds.length === 0) {
+          message.error("Vui lòng chọn ít nhất 1 gói học");
+          setSaving(false);
+          return;
+        }
+
         await studentService.create(payload);
         message.success("Thêm học viên thành công");
       }
@@ -472,7 +478,7 @@ const StudentFormModal = ({
       onCancel={handleClose}
       footer={null}
       centered
-      destroyOnClose
+      destroyOnHidden
       width={760}
       confirmLoading={loadingDetail}
     >

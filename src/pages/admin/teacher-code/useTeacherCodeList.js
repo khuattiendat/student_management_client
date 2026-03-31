@@ -16,9 +16,13 @@ export function useTeacherCodeList() {
     "search",
     parseAsString.withDefault(""),
   );
+  const [status, setStatus] = useQueryState(
+    "status",
+    parseAsString.withDefault(""),
+  );
   const [teacherId, setTeacherId] = useQueryState("teacherId", parseAsInteger);
 
-  const swrKey = ["teacher-codes", page, limit, search, teacherId];
+  const swrKey = ["teacher-codes", page, limit, search, teacherId, status];
 
   const { data, error, isLoading, isValidating, mutate } = useSWR(
     swrKey,
@@ -26,6 +30,7 @@ export function useTeacherCodeList() {
       const params = { page, limit };
       if (search) params.search = search;
       if (teacherId) params.teacherId = teacherId;
+      if (status) params.status = status;
 
       const response = await teacherCodeService.list(params);
       return response?.data ?? { items: [], pagination: { total: 0 } };
@@ -76,5 +81,7 @@ export function useTeacherCodeList() {
     setTeacherId,
     fetchData,
     handleDelete,
+    status,
+    setStatus,
   };
 }

@@ -274,6 +274,45 @@ const SessionList = () => {
       render: (value) => value || classDetailData?.name || "—",
     },
     {
+      title: "Trạng thái điểm danh",
+      key: "attendances",
+      render: (_, record) => {
+        const attendanceCount = record.attendances?.length ?? 0;
+        if (attendanceCount === 0) {
+          return <Tag color="default">Chưa điểm danh</Tag>;
+        }
+        const presentCount = record.attendances?.filter(
+          (a) => String(a.status).toLowerCase() === "present",
+        ).length;
+        const absentCount = record.attendances?.filter(
+          (a) => String(a.status).toLowerCase() === "absent",
+        ).length;
+        const lateCount = record.attendances?.filter(
+          (a) => String(a.status).toLowerCase() === "late",
+        ).length;
+
+        return (
+          <Space size="small">
+            {presentCount > 0 && (
+              <Tag color="green" icon={<CheckCircleOutlined />}>
+                Có mặt: {presentCount}
+              </Tag>
+            )}
+            {absentCount > 0 && (
+              <Tag color="red" icon={<CloseCircleOutlined />}>
+                Vắng: {absentCount}
+              </Tag>
+            )}
+            {lateCount > 0 && (
+              <Tag color="orange" icon={<ClockCircleOutlined />}>
+                Muộn: {lateCount}
+              </Tag>
+            )}
+          </Space>
+        );
+      },
+    },
+    {
       title: "Điểm danh",
       key: "attendance",
       width: 140,
@@ -500,6 +539,7 @@ const SessionList = () => {
           bordered
           size="small"
           locale={{ emptyText: "Lớp học chưa có học sinh" }}
+          scroll={{ x: "max-content" }}
         />
       </Card>
       <div className="flex items-center gap-2 justify-between">
@@ -539,7 +579,7 @@ const SessionList = () => {
             Tuần trước
           </Button>
           <Button icon={<HomeOutlined />} onClick={goToday}>
-            Hôm nay
+            Tuần này
           </Button>
           <Button
             icon={<RightOutlined />}
@@ -561,6 +601,7 @@ const SessionList = () => {
         pagination={false}
         bordered
         size="middle"
+        scroll={{ x: "max-content" }}
       />
 
       <div className="flex justify-end">
@@ -588,6 +629,7 @@ const SessionList = () => {
         cancelText="Hủy"
         confirmLoading={attendanceSaving}
         width={1100}
+        destroyOnHidden
       >
         <Table
           rowKey="studentId"
@@ -598,6 +640,7 @@ const SessionList = () => {
           bordered
           size="small"
           locale={{ emptyText: "Lớp học chưa có học sinh để điểm danh" }}
+          scroll={{ x: "max-content" }}
         />
       </Modal>
 
@@ -605,6 +648,7 @@ const SessionList = () => {
         title="Xác nhận mã code"
         open={openCodeModal}
         centered
+        destroyOnHidden
         onCancel={() => {
           setOpenCodeModal(false);
           setCode("");

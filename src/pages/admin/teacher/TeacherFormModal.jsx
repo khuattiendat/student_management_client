@@ -79,7 +79,7 @@ const TeacherFormModal = ({
       onCancel={handleClose}
       footer={null}
       centered
-      destroyOnClose
+      destroyOnHidden
       width={640}
     >
       <Form

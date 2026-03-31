@@ -6,8 +6,6 @@ const Forbidden = () => {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
   const handleLogout = () => {
-    console.log("Logging out user due to forbidden access");
-
     logout();
     navigate("/login");
   };

@@ -37,7 +37,7 @@ const ModalChangePassword = ({ open, close }) => {
       onCancel={handleClose}
       footer={null}
       centered
-      destroyOnClose
+      destroyOnHidden
     >
       <Form
         form={form}

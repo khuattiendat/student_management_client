@@ -524,7 +524,6 @@ const ClassFormModal = ({
           },
         ]),
       );
-      console.log("Payload to save:", payload);
 
       if (editing) {
         await classService.update(editing.id, payload);
@@ -552,7 +551,7 @@ const ClassFormModal = ({
       open={open}
       onCancel={handleClose}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
       width={1100}
       confirmLoading={loadingDetail}
     >
@@ -787,6 +786,7 @@ const ClassFormModal = ({
               pagination={false}
               size="small"
               bordered
+              scroll={{ x: "max-content" }}
               columns={[
                 {
                   title: "Thứ",
@@ -880,6 +880,7 @@ const ClassFormModal = ({
             pagination={false}
             size="small"
             bordered
+            scroll={{ x: "max-content" }}
             locale={{ emptyText: "Chưa chọn học sinh" }}
             columns={[
               {
