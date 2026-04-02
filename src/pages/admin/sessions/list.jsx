@@ -24,6 +24,7 @@ import {
   HomeOutlined,
   LeftOutlined,
   RightOutlined,
+  WarningOutlined,
   XFilled,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -35,22 +36,37 @@ import useAuthStore from "../../../store/authStore";
 import BackButton from "../../../components/common/BackButton";
 import { ROLES } from "../../../utils/constants";
 import ModalAddSession from "./modal/ModalAddSesstion";
+import { ATTENDANCE_STATUS_SUGGESTIONS } from "./const";
 
 const { Title, Text } = Typography;
 
-const ATTENDANCE_STATUS_SUGGESTIONS = [
-  { value: "present", label: "Có mặt" },
-  { value: "absent", label: "Vắng" },
-  { value: "late", label: "Muộn" },
-];
-
 const statusTagConfig = {
-  present: { color: "green", icon: <CheckCircleOutlined />, text: "Có mặt" },
-  absent: { color: "red", icon: <CloseCircleOutlined />, text: "Vắng" },
-  late: { color: "orange", icon: <ClockCircleOutlined />, text: "Đi muộn" },
-  excused: { color: "blue", icon: <ClockCircleOutlined />, text: "Có phép" },
+  present: {
+    color: "green",
+    icon: <CheckCircleOutlined />,
+    text: "Có mặt",
+  },
+  late: {
+    color: "orange",
+    icon: <ClockCircleOutlined />,
+    text: "Đi muộn",
+  },
+  excused_absent: {
+    color: "blue",
+    icon: <ClockCircleOutlined />,
+    text: "Vắng (có phép)",
+  },
+  unexcused_absent: {
+    color: "red",
+    icon: <CloseCircleOutlined />,
+    text: "Vắng (không phép)",
+  },
+  late_cancel_absent: {
+    color: "volcano",
+    icon: <WarningOutlined />,
+    text: "Báo nghỉ sát giờ",
+  },
 };
-
 const SessionList = () => {
   const userRole = useAuthStore((s) => s.user?.role);
   const { message } = App.useApp();
@@ -231,6 +247,7 @@ const SessionList = () => {
       } else {
         await sessionService.takeAttendance(selectedSession.id, payload);
       }
+      mutateSessionList();
 
       message.success(
         hasExistingAttendance
@@ -277,35 +294,51 @@ const SessionList = () => {
       title: "Trạng thái điểm danh",
       key: "attendances",
       render: (_, record) => {
-        const attendanceCount = record.attendances?.length ?? 0;
-        if (attendanceCount === 0) {
+        const attendances = record.attendances ?? [];
+
+        if (attendances.length === 0) {
           return <Tag color="default">Chưa điểm danh</Tag>;
         }
-        const presentCount = record.attendances?.filter(
-          (a) => String(a.status).toLowerCase() === "present",
-        ).length;
-        const absentCount = record.attendances?.filter(
-          (a) => String(a.status).toLowerCase() === "absent",
-        ).length;
-        const lateCount = record.attendances?.filter(
-          (a) => String(a.status).toLowerCase() === "late",
-        ).length;
+
+        const countByStatus = (status) =>
+          attendances.filter((a) => String(a.status).toLowerCase() === status)
+            .length;
+
+        const presentCount = countByStatus("present");
+        const lateCount = countByStatus("late");
+        const excusedCount = countByStatus("excused_absent");
+        const unexcusedCount = countByStatus("unexcused_absent");
+        const lateCancelCount = countByStatus("late_cancel_absent");
 
         return (
-          <Space size="small">
+          <Space size="small" wrap>
             {presentCount > 0 && (
               <Tag color="green" icon={<CheckCircleOutlined />}>
                 Có mặt: {presentCount}
               </Tag>
             )}
-            {absentCount > 0 && (
-              <Tag color="red" icon={<CloseCircleOutlined />}>
-                Vắng: {absentCount}
-              </Tag>
-            )}
+
             {lateCount > 0 && (
               <Tag color="orange" icon={<ClockCircleOutlined />}>
                 Muộn: {lateCount}
+              </Tag>
+            )}
+
+            {excusedCount > 0 && (
+              <Tag color="blue" icon={<ClockCircleOutlined />}>
+                Có phép: {excusedCount}
+              </Tag>
+            )}
+
+            {unexcusedCount > 0 && (
+              <Tag color="red" icon={<CloseCircleOutlined />}>
+                Không phép: {unexcusedCount}
+              </Tag>
+            )}
+
+            {lateCancelCount > 0 && (
+              <Tag color="volcano" icon={<WarningOutlined />}>
+                Sát giờ: {lateCancelCount}
               </Tag>
             )}
           </Space>
@@ -381,6 +414,7 @@ const SessionList = () => {
     {
       title: "Trạng thái",
       key: "status",
+      width: 350,
       render: (_, row) => (
         <Select
           options={ATTENDANCE_STATUS_SUGGESTIONS}
@@ -389,7 +423,7 @@ const SessionList = () => {
             updateAttendanceRow(row.studentId, "status", value || "")
           }
           placeholder="Chọn trạng thái"
-          className="w-44"
+          className="w-full"
           showSearch
           optionFilterProp="label"
         />
@@ -556,7 +590,7 @@ const SessionList = () => {
           />
         </div>
         <div className="flex gap-2">
-          <Button
+          {/* <Button
             type="primary"
             onClick={() => {
               setIsEditing(true);
@@ -564,7 +598,7 @@ const SessionList = () => {
             }}
           >
             Tạo buổi bù
-          </Button>
+          </Button> */}
           <Button type="primary" onClick={() => setOpenAddSessionModal(true)}>
             Thêm buổi học
           </Button>

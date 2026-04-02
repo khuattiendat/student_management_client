@@ -43,21 +43,14 @@ const studentService = {
   updateCycleStartDate: (id, cycleStartDate) =>
     axiosInstance.put(`/students/${id}/cycle-start-date`, { cycleStartDate }),
   getCycles: (params) => {
-    const { classId, studentIds } = params;
+    const { classId, studentId } = params;
     const query = new URLSearchParams();
     if (classId !== undefined && classId !== null && classId !== "") {
       query.append("classId", String(classId));
     }
-
-    const normalizedPackageIds = Array.isArray(studentIds)
-      ? studentIds
-      : studentIds !== undefined && studentIds !== null && studentIds !== ""
-        ? [studentIds]
-        : [];
-
-    normalizedPackageIds.forEach((id) => {
-      query.append("studentIds", String(id));
-    });
+    if (studentId !== undefined && studentId !== null && studentId !== "") {
+      query.append("studentId", String(studentId));
+    }
 
     return axiosInstance.get(`/students/cycles?${query.toString()}`);
   },

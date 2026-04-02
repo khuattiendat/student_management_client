@@ -20,16 +20,10 @@ export const TYPE_CONFIG = {
     label: "Môn học",
   },
   general: {
-    bg: "#64748B",
-    border: "#475569",
-    tagColor: "default",
+    bg: "#df4830",
+    border: "#df4830",
+    tagColor: "volcano",
     label: "Phổ thông",
-  },
-  completed: {
-    bg: "#CBD5E1",
-    border: "#94A3B8",
-    tagColor: "gray",
-    label: "Hoàn thành",
   },
 };
 

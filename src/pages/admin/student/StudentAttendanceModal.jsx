@@ -3,15 +3,42 @@ import { App, Modal, Table, Tag, Typography, Select, Space } from "antd";
 import dayjs from "dayjs";
 import useSWR from "swr";
 import studentService from "../../../services/studentService";
+import { ATTENDANCE_STATUS_SUGGESTIONS } from "../sessions/const";
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  WarningOutlined,
+} from "@ant-design/icons";
 
 const { Text } = Typography;
-
-const statusConfig = {
-  present: { color: "green", label: "Có mặt" },
-  absent: { color: "red", label: "Vắng" },
-  late: { color: "orange", label: "Đi muộn" },
+const statusTagConfig = {
+  present: {
+    color: "green",
+    icon: <CheckCircleOutlined />,
+    text: "Có mặt",
+  },
+  late: {
+    color: "orange",
+    icon: <ClockCircleOutlined />,
+    text: "Đi muộn",
+  },
+  excused_absent: {
+    color: "blue",
+    icon: <ClockCircleOutlined />,
+    text: "Vắng (có phép)",
+  },
+  unexcused_absent: {
+    color: "red",
+    icon: <CloseCircleOutlined />,
+    text: "Vắng (không phép)",
+  },
+  late_cancel_absent: {
+    color: "volcano",
+    icon: <WarningOutlined />,
+    text: "Báo nghỉ sát giờ",
+  },
 };
-
 const StudentAttendanceModal = ({ open, onClose, student }) => {
   const { message } = App.useApp();
 
@@ -96,9 +123,9 @@ const StudentAttendanceModal = ({ open, onClose, student }) => {
         title: "Trạng thái",
         dataIndex: "status",
         render: (status) => {
-          const config = statusConfig[String(status || "").toLowerCase()];
+          const config = statusTagConfig[String(status || "").toLowerCase()];
           return config ? (
-            <Tag color={config.color}>{config.label}</Tag>
+            <Tag color={config.color}>{config.text}</Tag>
           ) : (
             <Tag>{status || "—"}</Tag>
           );
@@ -148,11 +175,7 @@ const StudentAttendanceModal = ({ open, onClose, student }) => {
             setStatusFilter(value);
             setPage(1);
           }}
-          options={[
-            { label: "Có mặt", value: "present" },
-            { label: "Vắng", value: "absent" },
-            { label: "Đi muộn", value: "late" },
-          ]}
+          options={ATTENDANCE_STATUS_SUGGESTIONS}
         />
       </Space>
 

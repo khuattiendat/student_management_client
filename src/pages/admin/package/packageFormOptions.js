@@ -10,10 +10,10 @@ export const generalProgramOptions = [
 ];
 
 export const certificateOptions = [
-  { label: "TOEIC", value: "toeic" },
-  { label: "IELTS", value: "ielts" },
+  // { label: "TOEIC", value: "toeic" },
+  // { label: "IELTS", value: "ielts" },
   { label: "HSK", value: "hsk" },
-  { label: "YCT", value: "yct" },
+  // { label: "YCT", value: "yct" },
 ];
 
 export const subjectOptions = [

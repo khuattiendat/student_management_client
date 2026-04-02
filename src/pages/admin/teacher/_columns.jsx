@@ -9,6 +9,7 @@ import {
 } from "antd";
 import { DeleteOutlined, EditOutlined, UserOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import { PiPasswordThin } from "react-icons/pi";
 
 const { Text } = Typography;
 
@@ -21,7 +22,13 @@ const statusLabels = {
   inactive: "Ngừng hoạt động",
 };
 
-export const buildColumns = ({ page, limit, onEdit, onDelete }) => [
+export const buildColumns = ({
+  page,
+  limit,
+  onEdit,
+  onDelete,
+  onResetPassword,
+}) => [
   {
     title: "STT",
     width: 60,
@@ -136,6 +143,13 @@ export const buildColumns = ({ page, limit, onEdit, onDelete }) => [
             <Button type="text" danger icon={<DeleteOutlined />} />
           </Tooltip>
         </Popconfirm>
+        <Tooltip title="Đặt lại mật khẩu">
+          <Button
+            type="text"
+            icon={<PiPasswordThin />}
+            onClick={() => onResetPassword(record)}
+          />
+        </Tooltip>
       </Space>
     ),
   },

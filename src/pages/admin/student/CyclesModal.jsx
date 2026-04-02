@@ -13,14 +13,14 @@ const CyclesModal = ({
   onApply,
   initialBranchId,
   initialClassId,
-  initialStudentIds,
+  initialStudentId,
 }) => {
   const [branchId, setBranchId] = useState(initialBranchId ?? null);
   const [classId, setClassId] = useState(initialClassId ?? null);
-  const [studentIds, setStudentIds] = useState(initialStudentIds ?? []);
+  const [studentId, setStudentId] = useState(initialStudentId ?? null);
 
   const classOptionsByBranch = useMemo(() => {
-    if (!branchId) return [];
+    if (!branchId) return classOptions;
     const branchIdNumber = Number(branchId);
     return classOptions.filter(
       (item) => Number(item.branchId) === branchIdNumber,
@@ -28,22 +28,22 @@ const CyclesModal = ({
   }, [branchId, classOptions]);
 
   const swrKey = useMemo(() => {
-    if (!branchId) return null;
-    return ["cycle-students-by-branch-class", branchId, classId ?? ""];
-  }, [branchId, classId]);
+    if (!classId) return null;
+    return ["cycle-students-by-class", classId];
+  }, [classId]);
 
   const {
     data: studentOptions = [],
     isLoading,
     error,
   } = useSWR(swrKey, async () => {
-    if (!branchId) return [];
+    if (!classId) return [];
 
     const response = await studentService.list({
       page: 1,
       limit: 1000,
-      branchId: Number(branchId),
-      classId: classId ? Number(classId) : undefined,
+      branchId: branchId ? Number(branchId) : undefined,
+      classId: Number(classId),
     });
 
     const items = response?.data?.items ?? [];
@@ -60,9 +60,8 @@ const CyclesModal = ({
 
   const handleApply = () => {
     onApply?.({
-      branchId: branchId ?? null,
-      classId: classId ?? null,
-      studentIds,
+      classId,
+      studentId: studentId ?? null,
     });
     // handleClose();
   };
@@ -75,18 +74,14 @@ const CyclesModal = ({
         if (!nextOpen) return;
         setBranchId(initialBranchId ?? null);
         setClassId(initialClassId ?? null);
-        setStudentIds(initialStudentIds ?? []);
+        setStudentId(initialStudentId ?? null);
       }}
       destroyOnHidden
       title="Chọn học viên để xem chu kỳ"
       footer={
         <div className="flex justify-end gap-2">
           <Button onClick={handleClose}>Hủy</Button>
-          <Button
-            type="primary"
-            onClick={handleApply}
-            disabled={!branchId || studentIds.length === 0}
-          >
+          <Button type="primary" onClick={handleApply} disabled={!classId}>
             Xác nhận
           </Button>
         </div>
@@ -103,7 +98,7 @@ const CyclesModal = ({
             onChange={(value) => {
               setBranchId(value || null);
               setClassId(null);
-              setStudentIds([]);
+              setStudentId(null);
             }}
             showSearch
             optionFilterProp="label"
@@ -112,39 +107,36 @@ const CyclesModal = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <Text strong>Chọn lớp (tuỳ chọn)</Text>
+          <Text strong>Chọn lớp</Text>
           <Select
             value={classId ?? undefined}
-            placeholder={branchId ? "Chọn 1 lớp..." : "Chọn chi nhánh trước"}
+            placeholder="Chọn 1 lớp..."
             options={classOptionsByBranch}
             onChange={(value) => {
               setClassId(value || null);
-              setStudentIds([]);
+              setStudentId(null);
             }}
             showSearch
             optionFilterProp="label"
             allowClear
-            disabled={!branchId}
           />
         </div>
 
         <div className="flex flex-col gap-2">
           <Text strong>Chọn học sinh</Text>
           <Select
-            mode="multiple"
-            value={studentIds}
+            value={studentId ?? undefined}
             placeholder={
-              branchId ? "Chọn nhiều học sinh..." : "Chọn chi nhánh trước"
+              classId ? "Chọn 1 học sinh (tuỳ chọn)..." : "Chọn lớp trước"
             }
             options={studentOptions}
-            onChange={setStudentIds}
+            onChange={(value) => setStudentId(value || null)}
             showSearch
             optionFilterProp="label"
             loading={isLoading}
             notFoundContent={isLoading ? <Spin size="small" /> : null}
-            maxTagCount="responsive"
             allowClear
-            disabled={!branchId}
+            disabled={!classId}
           />
           {error ? (
             <Text type="danger">

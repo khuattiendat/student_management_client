@@ -9,7 +9,6 @@ import {
   Modal,
   Tag,
 } from "antd";
-import dayjs from "dayjs";
 import {
   DownOutlined,
   ImportOutlined,
@@ -29,6 +28,7 @@ import RenewCourseModal from "./RenewCourseModal";
 import StudentAttendanceModal from "./StudentAttendanceModal";
 import StudentRemainingSessionsModal from "./StudentRemainingSessionsModal";
 import CyclesModal from "./CyclesModal";
+import CycleReportModal from "./CycleReportModal";
 import classService from "../../../services/classService";
 import studentService from "../../../services/studentService";
 import DetailModal from "./DetailModal";
@@ -128,6 +128,8 @@ const ListStudent = () => {
   const [remainingStudent, setRemainingStudent] = useState(null);
   //
   const [openCyclesModal, setOpenCyclesModal] = useState(false);
+  const [openCycleReportModal, setOpenCycleReportModal] = useState(false);
+  const [cycleReportData, setCycleReportData] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailStudent, setDetailStudent] = useState(null);
 
@@ -171,27 +173,27 @@ const ListStudent = () => {
       fetchData();
     }
   };
-  const handleUpdateCycleStartDate = async (studentId, value) => {
-    const cycleStartDate = value ? dayjs(value).format("YYYY-MM-DD") : null;
-    try {
-      await studentService.updateCycleStartDate(studentId, cycleStartDate);
-      mutate((prev) => {
-        if (!prev) return prev;
-        const nextItems = (prev.items || []).map((student) =>
-          student.id === studentId ? { ...student, cycleStartDate } : student,
-        );
-        return { ...prev, items: nextItems };
-      }, false);
-      setDetailStudent((prev) =>
-        prev?.id === studentId ? { ...prev, cycleStartDate } : prev,
-      );
-      message.success("Cập nhật ngày bắt đầu chu kỳ thành công");
-    } catch (err) {
-      message.error(
-        err?.response?.data?.message || "Cập nhật ngày bắt đầu chu kỳ thất bại",
-      );
-    }
-  };
+  // const handleUpdateCycleStartDate = async (studentId, value) => {
+  //   const cycleStartDate = value ? dayjs(value).format("YYYY-MM-DD") : null;
+  //   try {
+  //     await studentService.updateCycleStartDate(studentId, cycleStartDate);
+  //     mutate((prev) => {
+  //       if (!prev) return prev;
+  //       const nextItems = (prev.items || []).map((student) =>
+  //         student.id === studentId ? { ...student, cycleStartDate } : student,
+  //       );
+  //       return { ...prev, items: nextItems };
+  //     }, false);
+  //     setDetailStudent((prev) =>
+  //       prev?.id === studentId ? { ...prev, cycleStartDate } : prev,
+  //     );
+  //     message.success("Cập nhật ngày bắt đầu chu kỳ thành công");
+  //   } catch (err) {
+  //     message.error(
+  //       err?.response?.data?.message || "Cập nhật ngày bắt đầu chu kỳ thất bại",
+  //     );
+  //   }
+  // };
   const handleUpdateNotifications = async (id, type, value) => {
     // Optimistic UI update: update SWR cache without refetching list API
     mutate((prev) => {
@@ -225,17 +227,17 @@ const ListStudent = () => {
     setRemainingModalOpen(true);
   };
 
-  const handleApplyCycles = async ({ classId, studentIds }) => {
+  const handleApplyCycles = async ({ classId, studentId }) => {
     try {
-      const params = {};
-      if (classId) {
-        params.classId = classId;
-      }
-      if (studentIds && studentIds.length > 0) {
-        params.studentIds = studentIds.map((id) => String(id));
+      const params = { classId };
+      if (studentId) {
+        params.studentId = studentId;
       }
       const response = await studentService.getCycles(params);
-      console.log("getCycles response", response);
+
+      setCycleReportData(response?.data ?? null);
+      setOpenCycleReportModal(true);
+      setOpenCyclesModal(false);
     } catch (err) {
       message.error(
         err?.response?.data?.message || "Lấy dữ liệu chu kỳ học thất bại",
@@ -253,7 +255,7 @@ const ListStudent = () => {
     onViewRemainingSessions: openRemainingSessions,
     onViewDetail: openDetail,
     onUpdateNotifications: handleUpdateNotifications,
-    onUpdateCycleStartDate: handleUpdateCycleStartDate,
+    // onUpdateCycleStartDate: handleUpdateCycleStartDate,
     canManage,
   });
 
@@ -436,6 +438,11 @@ const ListStudent = () => {
         initialClassId={classId}
         onClose={() => setOpenCyclesModal(false)}
         onApply={handleApplyCycles}
+      />
+      <CycleReportModal
+        open={openCycleReportModal}
+        data={cycleReportData}
+        onClose={() => setOpenCycleReportModal(false)}
       />
       <DetailModal
         open={detailOpen}

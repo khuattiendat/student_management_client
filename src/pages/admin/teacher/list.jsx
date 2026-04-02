@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Select, Space, Table, Button, Typography } from "antd";
+import { Select, Space, Table, Button, Typography, message } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import useSWR from "swr";
 import InputSearch from "../../../components/common/InputSearch";
@@ -8,6 +8,8 @@ import { useTeacherList } from "./useTeacherList";
 import { buildColumns } from "./_columns";
 import TeacherFormModal from "./TeacherFormModal";
 import Heading from "../../../components/common/Heading";
+import ResetPasswordModal from "./ResetPasswordModal";
+import authService from "../../../services/authService";
 
 const { Title } = Typography;
 
@@ -49,6 +51,7 @@ const ListTeacher = () => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [resetPasswordModalOpen, setResetPasswordModalOpen] = useState(false);
 
   const allBranchOptions = [
     { label: "Tất cả cơ sở", value: "" },
@@ -69,6 +72,10 @@ const ListTeacher = () => {
     setEditing(record);
     setModalOpen(true);
   };
+  const onResetPassword = (record) => {
+    setEditing(record);
+    setResetPasswordModalOpen(true);
+  };
 
   const handleSaved = ({ created }) => {
     if (created) {
@@ -78,12 +85,27 @@ const ListTeacher = () => {
       fetchData();
     }
   };
+  const handleResetPassword = async (data) => {
+    try {
+      const payload = {
+        teacherId: data.id,
+        newPassword: data.newPassword,
+      };
+      await authService.changePasswordAdmin(payload);
+      message.success("Đặt lại mật khẩu thành công");
+    } catch (error) {
+      message.error(
+        error?.response?.data?.message || "Đặt lại mật khẩu thất bại",
+      );
+    }
+  };
 
   const columns = buildColumns({
     page,
     limit,
     onEdit: openEdit,
     onDelete: handleDelete,
+    onResetPassword: onResetPassword,
   });
 
   return (
@@ -165,6 +187,13 @@ const ListTeacher = () => {
         editing={editing}
         onSaved={handleSaved}
         branchOptions={branchOptions}
+      />
+      {/* Reset Password Modal */}
+      <ResetPasswordModal
+        open={resetPasswordModalOpen}
+        onClose={() => setResetPasswordModalOpen(false)}
+        teacher={editing}
+        onOk={handleResetPassword}
       />
     </>
   );

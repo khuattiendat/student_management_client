@@ -575,8 +575,9 @@ const ClassFormModal = ({
         >
           <Select
             options={[
-              { label: "Phòng 301", value: "Phòng 301" },
-              { label: "Phòng 302", value: "Phòng 302" },
+              { label: "Phòng 01", value: "Phòng 01" },
+              { label: "Phòng 02", value: "Phòng 02" },
+              { label: "Phòng 03", value: "Phòng 03" },
             ]}
             placeholder="Chọn phòng học"
             showSearch

@@ -16,7 +16,7 @@ import {
   PhoneOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
-import dayjs from "dayjs";
+// import dayjs from "dayjs";
 const { Text } = Typography;
 const filterByCurriculum = (data = []) =>
   Object.values(
@@ -44,10 +44,33 @@ const hasLowRemainingSessions = (record = {}) => {
   if (Array.isArray(detailedRows) && detailedRows.length > 0) {
     const filtered = filterByCurriculum(detailedRows);
 
-    return filtered.some((item) => Number(item?.remainingSessions) <= 3);
+    return filtered.some((item) => Number(item?.remainingSessions) < 0);
   }
 
-  return Number(record?.remainingSessions) <= 3;
+  return Number(record?.remainingSessions) < 0;
+};
+const hasLowThreRemainingSessions = (record = {}) => {
+  const candidateArrays = [
+    record?.enrollments,
+    record?.studentPackages,
+    record?.packageEnrollments,
+    record?.remainingSessionsByPackage,
+  ];
+
+  const detailedRows = candidateArrays.find((item) => Array.isArray(item));
+
+  if (Array.isArray(detailedRows) && detailedRows.length > 0) {
+    const filtered = filterByCurriculum(detailedRows);
+
+    return filtered.some(
+      (item) =>
+        Number(item?.remainingSessions) <= 3 &&
+        Number(item?.remainingSessions) >= 0,
+    );
+  }
+
+  const remainingSessions = Number(record?.remainingSessions);
+  return remainingSessions <= 3 && remainingSessions >= 0;
 };
 
 export const buildColumns = ({
@@ -61,7 +84,7 @@ export const buildColumns = ({
   onViewDetail,
   canManage,
   onUpdateNotifications,
-  onUpdateCycleStartDate,
+  // onUpdateCycleStartDate,
 }) => [
   {
     title: "STT",
@@ -76,6 +99,7 @@ export const buildColumns = ({
     key: "name",
     render: (_, record) => {
       const isLowRemainingSessions = hasLowRemainingSessions(record);
+      const isLowThreRemainingSessions = hasLowThreRemainingSessions(record);
       return (
         <div className="flex flex-col">
           <Text
@@ -83,7 +107,12 @@ export const buildColumns = ({
             type={isLowRemainingSessions ? "danger" : undefined}
             className={isLowRemainingSessions ? "animate-pulse" : ""}
           >
-            {record.name}
+            <div className="flex items-center gap-1">
+              <span>{record.name}</span>
+              {isLowThreRemainingSessions && (
+                <div className="animate-pulse text-red-600">!</div>
+              )}
+            </div>
           </Text>
           <Text type="secondary">{record.phone || "—"}</Text>
         </div>
@@ -95,20 +124,20 @@ export const buildColumns = ({
     dataIndex: "birthday",
     key: "birthday",
   },
-  {
-    title: "Ngày bắt đầu chu kỳ",
-    dataIndex: "cycleStartDate",
-    width: 200,
-    key: "cycleStartDate",
-    render: (value, record) => (
-      <DatePicker
-        value={value ? dayjs(value) : null}
-        format="DD/MM/YYYY"
-        disabledDate={(current) => current && current.isAfter(dayjs())}
-        onChange={(value) => onUpdateCycleStartDate(record.id, value)}
-      />
-    ),
-  },
+  // {
+  //   title: "Ngày bắt đầu chu kỳ",
+  //   dataIndex: "cycleStartDate",
+  //   width: 200,
+  //   key: "cycleStartDate",
+  //   render: (value, record) => (
+  //     <DatePicker
+  //       value={value ? dayjs(value) : null}
+  //       format="DD/MM/YYYY"
+  //       disabledDate={(current) => current && current.isAfter(dayjs())}
+  //       onChange={(value) => onUpdateCycleStartDate(record.id, value)}
+  //     />
+  //   ),
+  // },
   {
     title: "Cơ sở",
     dataIndex: "branch",
