@@ -44,7 +44,9 @@ const hasLowRemainingSessions = (record = {}) => {
   if (Array.isArray(detailedRows) && detailedRows.length > 0) {
     const filtered = filterByCurriculum(detailedRows);
 
-    return filtered.some((item) => Number(item?.remainingSessions) < 0);
+    return filtered.some(
+      (item) => Number(item?.remainingSessions) < 0 || item?.isPaid === false,
+    );
   }
 
   return Number(record?.remainingSessions) < 0;
@@ -238,7 +240,7 @@ export const buildColumns = ({
             <Tooltip title="Thông tin chi tiết">
               <Button
                 type="text"
-                icon={<InfoCircleOutlined className="!text-blue-500" />}
+                icon={<InfoCircleOutlined className="text-blue-500!" />}
                 onClick={() => onViewDetail(record)}
               />
             </Tooltip>

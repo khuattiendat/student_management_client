@@ -8,6 +8,7 @@ import {
   Input,
   InputNumber,
   Modal,
+  Radio,
   Space,
   Typography,
   Select,
@@ -116,7 +117,7 @@ const StudentFormModal = ({
 
         form.setFieldsValue({
           name: detail?.name ?? "",
-          birthday: detail?.birthday ? dayjs(detail.birthday) : undefined,
+          birthday: detail?.birthday,
           phone: detail?.phone ?? "",
           branchId: detail?.branchId ?? detail?.branch?.id ?? undefined,
           provinceCode,
@@ -441,6 +442,7 @@ const StudentFormModal = ({
           phone: values.phone,
           branchId: values.branchId,
           ...addressData,
+          isPaid: values.isPaid,
           parents: (values.parents ?? []).map((parent) => ({
             name: parent.name,
             phone: parent.phone,
@@ -783,6 +785,24 @@ const StudentFormModal = ({
                 </div>
               ) : null}
             </div>
+          </Form.Item>
+        )}
+        {!editing && (
+          <Form.Item
+            label="Trạng thái đóng tiền"
+            name="isPaid"
+            rules={[
+              {
+                required: true,
+                message: "Vui lòng chọn trạng thái đóng tiền",
+              },
+            ]}
+            className="mb-0"
+          >
+            <Radio.Group>
+              <Radio value={true}>Đã đóng tiền</Radio>
+              <Radio value={false}>Chưa đóng tiền</Radio>
+            </Radio.Group>
           </Form.Item>
         )}
 

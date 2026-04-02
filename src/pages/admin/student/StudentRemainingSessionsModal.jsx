@@ -1,5 +1,14 @@
 import { useEffect, useMemo } from "react";
-import { App, Modal, Table, Tag, Typography } from "antd";
+import {
+  App,
+  Button,
+  Modal,
+  Popconfirm,
+  Table,
+  Tag,
+  Tooltip,
+  Typography,
+} from "antd";
 import useSWR from "swr";
 import studentService from "../../../services/studentService";
 import { comboTypeLabels } from "../package/_columns";
@@ -8,6 +17,7 @@ import {
   generalProgramOptions,
   typeOptions,
 } from "../package/packageFormOptions";
+import { EditOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
@@ -75,7 +85,7 @@ const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
 
   const swrKey = open && student?.id ? ["student-remaining", student.id] : null;
 
-  const { data, isLoading, error } = useSWR(
+  const { data, isLoading, error, mutate } = useSWR(
     swrKey,
     async () => {
       const response = await studentService.detail(student.id);
@@ -86,6 +96,32 @@ const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
       dedupingInterval: 5000,
     },
   );
+  const handleToggleIsPaid = async (record) => {
+    try {
+      const enrollment = data?.enrollments?.find(
+        (enroll) => enroll.packageId === record.packageId,
+      );
+      if (!enrollment) {
+        message.error(
+          "Không tìm thấy enrollment tương ứng để cập nhật trạng thái đóng tiền.",
+        );
+        return;
+      }
+
+      await studentService.updateIsPaidEnrollment(
+        student.id,
+        enrollment.id,
+        !enrollment.isPaid,
+      );
+      message.success("Cập nhật trạng thái đóng tiền thành công");
+      mutate();
+    } catch (error) {
+      message.error(
+        error?.response?.data?.message ||
+          "Cập nhật trạng thái đóng tiền thất bại",
+      );
+    }
+  };
 
   useEffect(() => {
     if (error) {
@@ -172,6 +208,35 @@ const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
       key: "remainingSessions",
       align: "right",
       render: (value) => <Text strong>{value ?? 0}</Text>,
+    },
+    {
+      title: "Trạng thái đóng tiền",
+      key: "isPaid",
+      render: (_, record) => {
+        const isPaid = data?.enrollments?.find(
+          (enroll) => enroll.packageId === record.packageId,
+        )?.isPaid;
+
+        if (isPaid === undefined) return "—";
+        return (
+          <>
+            <Tag color={isPaid ? "green" : "red"}>
+              {isPaid ? "Đã đóng" : "Chưa đóng"}
+            </Tag>
+            <Popconfirm
+              title="Xác nhận thay đổi trạng thái đóng tiền"
+              description={`Bạn có chắc muốn đánh dấu gói "${record.packageName}" là ${isPaid ? "chưa đóng" : "đã đóng"}?`}
+              okText="Xác nhận"
+              cancelText="Hủy"
+              onConfirm={() => handleToggleIsPaid(record)}
+            >
+              <Tooltip title="Thay đổi trạng thái đóng tiền">
+                <Button type="text" icon={<EditOutlined />} />
+              </Tooltip>
+            </Popconfirm>
+          </>
+        );
+      },
     },
   ];
 

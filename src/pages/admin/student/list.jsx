@@ -427,6 +427,7 @@ const ListStudent = () => {
         onClose={() => {
           setRemainingModalOpen(false);
           setRemainingStudent(null);
+          mutate();
         }}
         student={remainingStudent}
       />

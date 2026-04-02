@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { App, Button, Checkbox, Form, Modal, Select, Typography } from "antd";
+import {
+  App,
+  Button,
+  Checkbox,
+  Form,
+  Modal,
+  Radio,
+  Select,
+  Typography,
+} from "antd";
 import studentService from "../../../services/studentService";
 import {
   certificateOptions,
@@ -220,6 +229,11 @@ const RenewCourseModal = ({
   const handleSave = async (values) => {
     if (!student?.id) return;
 
+    if (values.packageIds === undefined || values.packageIds.length === 0) {
+      message.error("Vui lòng chọn ít nhất 1 gói học để gia hạn");
+      return;
+    }
+
     setSaving(true);
     try {
       await studentService.renewCourse(student.id, {
@@ -403,6 +417,22 @@ const RenewCourseModal = ({
               </div>
             ) : null}
           </div>
+        </Form.Item>
+        <Form.Item
+          label="Trạng thái đóng tiền"
+          name="isPaid"
+          rules={[
+            {
+              required: true,
+              message: "Vui lòng chọn trạng thái đóng tiền",
+            },
+          ]}
+          className="mb-0"
+        >
+          <Radio.Group>
+            <Radio value={true}>Đã đóng tiền</Radio>
+            <Radio value={false}>Chưa đóng tiền</Radio>
+          </Radio.Group>
         </Form.Item>
 
         <div className="flex justify-end gap-2">

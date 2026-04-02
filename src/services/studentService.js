@@ -54,6 +54,13 @@ const studentService = {
 
     return axiosInstance.get(`/students/cycles?${query.toString()}`);
   },
+  updateIsPaidEnrollment: (studentId, enrollmentId, isPaid) =>
+    axiosInstance.put(
+      `/students/${studentId}/enrollments/${enrollmentId}/is-paid`,
+      {
+        isPaid,
+      },
+    ),
 };
 
 export default studentService;
