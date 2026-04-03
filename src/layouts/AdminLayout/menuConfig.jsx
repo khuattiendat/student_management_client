@@ -57,8 +57,9 @@ export const buildSidebarMenuItems = () => [
   { type: "divider" },
   {
     key: "/trash",
-    icon: <InboxOutlined color="red" className="!text-red-600" />,
-    label: "Thùng rác",
+    icon: <InboxOutlined color="red" className="text-red-600!" />,
+    className: "text-red-600!",
+    label: "Đã xóa gần đây",
   },
 ];
 export const buildSidebarMenuItemsTeacher = () => [
