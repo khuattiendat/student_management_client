@@ -167,7 +167,12 @@ const PackageFormModal = ({ open, onClose, editing, onSaved }) => {
 
         <div className="flex justify-end gap-2">
           <Button onClick={handleClose}>Hủy</Button>
-          <Button type="primary" htmlType="submit" loading={saving}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={saving}
+            disabled={saving}
+          >
             {editing ? "Cập nhật" : "Thêm mới"}
           </Button>
         </div>

@@ -94,7 +94,12 @@ const ModalInfo = ({ open, close }) => {
 
         <div className="flex justify-end gap-2">
           <Button onClick={handleClose}>Hủy</Button>
-          <Button type="primary" htmlType="submit" loading={submitting}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={submitting}
+            disabled={submitting}
+          >
             Lưu
           </Button>
         </div>

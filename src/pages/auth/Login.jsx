@@ -3,6 +3,7 @@ import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
 import authService from "../../services/authService";
+import { useState } from "react";
 
 const { Title, Text } = Typography;
 
@@ -12,11 +13,13 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { message } = App.useApp();
+  const [loading, setLoading] = useState(false);
 
   const from = location.state?.from?.pathname || "/";
 
   const onFinish = async (values) => {
     try {
+      setLoading(true);
       const response = await authService.login(values);
       const role = response.data?.user?.role;
       await login(response.data);
@@ -24,12 +27,15 @@ const Login = () => {
         login(response.data);
         message.success("Đăng nhập thành công!");
         navigate(from, { replace: true });
+        setLoading(false);
       } else {
         login(response.data);
         message.success("Đăng nhập thành công");
         navigate("/giao-vien/danh-sach-lop-hoc", { replace: true });
+        setLoading(false);
       }
     } catch (err) {
+      setLoading(false);
       const errorMessage =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
@@ -67,7 +73,13 @@ const Login = () => {
         </Form.Item>
 
         <Form.Item className="!mb-3">
-          <Button type="primary" htmlType="submit" block>
+          <Button
+            type="primary"
+            htmlType="submit"
+            block
+            loading={loading}
+            disabled={loading}
+          >
             Đăng nhập
           </Button>
         </Form.Item>

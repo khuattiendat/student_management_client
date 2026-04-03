@@ -18,6 +18,7 @@ const CyclesModal = ({
   const [branchId, setBranchId] = useState(initialBranchId ?? null);
   const [classId, setClassId] = useState(initialClassId ?? null);
   const [studentId, setStudentId] = useState(initialStudentId ?? null);
+  const [loading, setLoading] = useState(false);
 
   const classOptionsByBranch = useMemo(() => {
     if (!branchId) return classOptions;
@@ -58,11 +59,13 @@ const CyclesModal = ({
     onClose?.();
   };
 
-  const handleApply = () => {
-    onApply?.({
+  const handleApply = async () => {
+    setLoading(true);
+    await onApply?.({
       classId,
       studentId: studentId ?? null,
     });
+    setLoading(false);
     // handleClose();
   };
 
@@ -81,7 +84,12 @@ const CyclesModal = ({
       footer={
         <div className="flex justify-end gap-2">
           <Button onClick={handleClose}>Hủy</Button>
-          <Button type="primary" onClick={handleApply} disabled={!classId}>
+          <Button
+            type="primary"
+            onClick={handleApply}
+            disabled={!classId || loading}
+            loading={loading}
+          >
             Xác nhận
           </Button>
         </div>

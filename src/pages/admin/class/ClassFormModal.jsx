@@ -912,6 +912,7 @@ const ClassFormModal = ({
             type="primary"
             htmlType="submit"
             loading={saving || loadingDetail}
+            disabled={saving || loadingDetail}
           >
             {editing ? "Cập nhật" : "Thêm mới"}
           </Button>

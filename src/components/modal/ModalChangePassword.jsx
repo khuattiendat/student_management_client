@@ -100,7 +100,12 @@ const ModalChangePassword = ({ open, close }) => {
           <Button onClick={handleClose} className="mr-2">
             Hủy
           </Button>
-          <Button type="primary" htmlType="submit" loading={loading}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={loading}
+            disabled={loading}
+          >
             Xác nhận
           </Button>
         </Form.Item>
