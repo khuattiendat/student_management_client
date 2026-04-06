@@ -498,8 +498,8 @@ const StudentFormModal = ({
           <Input placeholder="Nhập họ tên học viên" />
         </Form.Item>
 
-        <Form.Item label="Năm sinh" name="birthday">
-          <InputNumber className="w-full!" />
+        <Form.Item label="Ngày tháng năm sinh" name="birthday">
+          <Input className="w-full!" />
         </Form.Item>
 
         <Form.Item label="Số điện thoại học viên" name="phone">
