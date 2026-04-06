@@ -82,24 +82,21 @@ const AdminLayout = () => {
   return (
     <Layout className="min-h-screen bg-gray-100">
       <Header className="sticky top-0 z-[999] flex items-center gap-3 bg-[#001529] px-5 shadow-md justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 h-full">
           <div
             onClick={() => setCollapsed(!collapsed)}
             className="shrink-0 cursor-pointer text-lg text-white/75"
           >
             {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           </div>
-
-          <div className="flex h-9 w-[120px] shrink-0 items-center justify-center rounded-md border border-white/15 bg-white/10">
-            <Text
-              strong
-              className="text-xs tracking-wide !text-white uppercase"
-            >
-              {user?.role}
-            </Text>
-          </div>
         </div>
-
+        <div className="h-full relative py-1">
+          <img
+            src="/logo.png"
+            alt=""
+            className="bg-transparent w-full h-full object-contain rounded-xl"
+          />
+        </div>
         <Popover
           trigger="click"
           content={
