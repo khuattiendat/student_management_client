@@ -16,8 +16,11 @@ import {
   PhoneOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
+import ParentZaloInput from "./ParentZaloInput";
+import dayjs from "dayjs";
 // import dayjs from "dayjs";
 const { Text } = Typography;
+
 const filterByCurriculum = (data = []) =>
   Object.values(
     data.reduce((acc, item) => {
@@ -86,6 +89,7 @@ export const buildColumns = ({
   onViewDetail,
   canManage,
   onUpdateNotifications,
+  onUpdateZaloName,
   // onUpdateCycleStartDate,
 }) => [
   {
@@ -125,6 +129,7 @@ export const buildColumns = ({
     title: "Năm sinh",
     dataIndex: "birthday",
     key: "birthday",
+    render: (value) => (value ? dayjs(value).format("DD/MM/YYYY") : "—"),
   },
   // {
   //   title: "Ngày bắt đầu chu kỳ",
@@ -146,6 +151,41 @@ export const buildColumns = ({
     width: 200,
     key: "branch",
     render: (branch) => branch?.name || "—",
+  },
+  {
+    title: "Phụ huynh",
+    dataIndex: "parents",
+    key: "parents",
+    width: 240,
+    render: (_, { parents = [] }) => {
+      const [parent] = parents;
+
+      return (
+        <div className="flex flex-col">
+          <Text strong>{parent?.name || "—"}</Text>
+          <Text type="secondary">{parent?.phone || "—"}</Text>
+        </div>
+      );
+    },
+  },
+  {
+    title: "Zalo phụ huynh",
+    dataIndex: "parents",
+    key: "parents",
+    width: 240,
+    render: (_, { parents = [] }) => {
+      const [parent] = parents;
+
+      return (
+        <div className="flex flex-col">
+          <ParentZaloInput
+            key={`${parent?.id || "empty"}-${parent?.zaloName || ""}`}
+            parent={parent}
+            onUpdateZaloName={onUpdateZaloName}
+          />
+        </div>
+      );
+    },
   },
   {
     title: "Số buổi đã học",

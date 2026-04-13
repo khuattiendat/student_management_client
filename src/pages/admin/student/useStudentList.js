@@ -32,6 +32,14 @@ export function useStudentList() {
     "isTexted",
     parseAsString.withDefault(""),
   );
+  const [packageType, setPackageType] = useQueryState(
+    "packageType",
+    parseAsString.withDefault(""),
+  );
+  const [birthMonth, setBirthMonth] = useQueryState(
+    "birthMonth",
+    parseAsString.withDefault(""),
+  );
 
   const swrKey = [
     "students",
@@ -42,6 +50,8 @@ export function useStudentList() {
     classId,
     isCalled,
     isTexted,
+    packageType,
+    birthMonth,
   ];
 
   const { data, error, isLoading, isValidating, mutate } = useSWR(
@@ -51,6 +61,8 @@ export function useStudentList() {
       if (search) params.search = search;
       if (branchId) params.branchId = Number(branchId);
       if (classId) params.classId = Number(classId);
+      if (packageType) params.packageType = packageType;
+      if (birthMonth) params.birthMonth = birthMonth;
       if (isCalled !== undefined && isCalled !== "") {
         params.isCalled = Number(isCalled);
       }
@@ -109,6 +121,10 @@ export function useStudentList() {
     setIsCalled,
     isTexted,
     setIsTexted,
+    packageType,
+    setPackageType,
+    birthMonth,
+    setBirthMonth,
     mutate,
   };
 }

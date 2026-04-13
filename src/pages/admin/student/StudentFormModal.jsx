@@ -32,6 +32,14 @@ const parsePrice = (value) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const toServerDate = (value) => {
+  if (!value) return null;
+  if (dayjs.isDayjs(value)) return value.format("YYYY-MM-DD");
+
+  const parsed = dayjs(value);
+  return parsed.isValid() ? parsed.format("YYYY-MM-DD") : null;
+};
+
 const StudentFormModal = ({
   open,
   onClose,
@@ -117,7 +125,7 @@ const StudentFormModal = ({
 
         form.setFieldsValue({
           name: detail?.name ?? "",
-          birthday: detail?.birthday,
+          birthday: detail?.birthday ? dayjs(detail.birthday) : undefined,
           phone: detail?.phone ?? "",
           branchId: detail?.branchId ?? detail?.branch?.id ?? undefined,
           provinceCode,
@@ -416,14 +424,14 @@ const StudentFormModal = ({
       if (editing) {
         const payload = {
           name: values.name,
-          birthday: values.birthday,
+          birthday: toServerDate(values.birthday),
           phone: values.phone,
           branchId: values.branchId,
           ...addressData,
           parents: (values.parents ?? []).map((parent) => {
-            if (parent.id) {
-              return { id: parent.id };
-            }
+            // if (parent.id) {
+            //   return { id: parent.id };
+            // }
 
             return {
               name: parent.name,
@@ -438,7 +446,7 @@ const StudentFormModal = ({
       } else {
         const payload = {
           name: values.name,
-          birthday: values.birthday,
+          birthday: toServerDate(values.birthday),
           phone: values.phone,
           branchId: values.branchId,
           ...addressData,
@@ -499,7 +507,11 @@ const StudentFormModal = ({
         </Form.Item>
 
         <Form.Item label="Ngày tháng năm sinh" name="birthday">
-          <Input className="w-full!" />
+          <DatePicker
+            className="w-full!"
+            format="DD/MM/YYYY"
+            placeholder="Chọn ngày sinh"
+          />
         </Form.Item>
 
         <Form.Item label="Số điện thoại học viên" name="phone">

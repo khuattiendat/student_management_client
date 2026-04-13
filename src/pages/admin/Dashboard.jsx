@@ -99,13 +99,13 @@ const Dashboard = () => {
 
   const stats = [
     {
-      title: "Sinh viên",
+      title: "Học viên",
       value: overview?.studentsTotal ?? 0,
       icon: <TeamOutlined />,
       colorClass: "text-blue-600",
     },
     {
-      title: "Giảng viên",
+      title: "Giáo viên",
       value: overview?.teachersTotal ?? 0,
       icon: <UserOutlined />,
       colorClass: "text-green-500",
@@ -291,7 +291,7 @@ const Dashboard = () => {
                     <Legend wrapperStyle={{ fontSize: 12 }} />
                     <Bar
                       dataKey="studentsTotal"
-                      name="Sinh viên"
+                      name="Học viên"
                       fill="#1d4ed8"
                       radius={[6, 6, 0, 0]}
                     />

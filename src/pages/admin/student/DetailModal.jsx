@@ -39,24 +39,6 @@ const DetailModal = ({ open, onClose, detailStudent }) => {
 
           <div>
             <Title level={5} className="mb-1!">
-              Phụ huynh
-            </Title>
-            {Array.isArray(detailStudent.parents) &&
-            detailStudent.parents.length ? (
-              <div className="flex flex-col gap-1">
-                {detailStudent.parents.map((parent) => (
-                  <span key={parent.id || `${parent.name}-${parent.phone}`}>
-                    {parent.name} ({parent.phone || "—"})
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <span>Không có phụ huynh</span>
-            )}
-          </div>
-
-          <div>
-            <Title level={5} className="mb-1!">
               Gói học
             </Title>
             {Array.isArray(detailStudent.packages) &&

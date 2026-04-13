@@ -33,6 +33,7 @@ import classService from "../../../services/classService";
 import studentService from "../../../services/studentService";
 import DetailModal from "./DetailModal";
 import Heading from "../../../components/common/Heading";
+import { typeOptions } from "../package/packageFormOptions";
 
 const { Title } = Typography;
 const calledOptions = [
@@ -44,6 +45,21 @@ const textedOptions = [
   { label: "Thông báo nhắn tin", value: "" },
   { label: "Đã nhắn tin", value: 1 },
   { label: "Chưa nhắn tin", value: 0 },
+];
+const birthMonthOptions = [
+  { label: "Lọc tháng sinh", value: "" },
+  { label: "Tháng 1", value: "1" },
+  { label: "Tháng 2", value: "2" },
+  { label: "Tháng 3", value: "3" },
+  { label: "Tháng 4", value: "4" },
+  { label: "Tháng 5", value: "5" },
+  { label: "Tháng 6", value: "6" },
+  { label: "Tháng 7", value: "7" },
+  { label: "Tháng 8", value: "8" },
+  { label: "Tháng 9", value: "9" },
+  { label: "Tháng 10", value: "10" },
+  { label: "Tháng 11", value: "11" },
+  { label: "Tháng 12", value: "12" },
 ];
 
 const ListStudent = () => {
@@ -68,6 +84,10 @@ const ListStudent = () => {
     fetchData,
     handleDelete,
     mutate,
+    packageType,
+    setPackageType,
+    birthMonth,
+    setBirthMonth,
   } = useStudentList();
 
   const userRole = useAuthStore((s) => s.user?.role);
@@ -244,6 +264,46 @@ const ListStudent = () => {
       );
     }
   };
+  const handleUpdateZaloName = async (parentId, zaloName) => {
+    try {
+      if (!parentId) return;
+
+      await studentService.updateParentZaloName(parentId, zaloName);
+      mutate((prev) => {
+        if (!prev) return prev;
+        const nextItems = (prev.items || []).map((student) => {
+          if (!student.parents) return student;
+          const nextParents = student.parents.map((parent) =>
+            parent.id === parentId ? { ...parent, zaloName } : parent,
+          );
+          return { ...student, parents: nextParents };
+        });
+        return { ...prev, items: nextItems };
+      }, false);
+      setDetailStudent((prev) => {
+        if (!prev || !prev.parents) return prev;
+        const nextParents = prev.parents.map((parent) =>
+          parent.id === parentId ? { ...parent, zaloName } : parent,
+        );
+        return { ...prev, parents: nextParents };
+      });
+      message.success("Cập nhật Zalo phụ huynh thành công");
+    } catch (err) {
+      message.error(
+        err?.response?.data?.message || "Cập nhật Zalo phụ huynh thất bại",
+      );
+    }
+  };
+  const handleResetFilters = () => {
+    setSearch(null);
+    setBranchId(null);
+    setClassId(null);
+    setIsCalled(null);
+    setIsTexted(null);
+    setPackageType(null);
+    setBirthMonth(null);
+    setPage(1);
+  };
 
   const columns = buildColumns({
     page,
@@ -255,6 +315,7 @@ const ListStudent = () => {
     onViewRemainingSessions: openRemainingSessions,
     onViewDetail: openDetail,
     onUpdateNotifications: handleUpdateNotifications,
+    onUpdateZaloName: handleUpdateZaloName,
     // onUpdateCycleStartDate: handleUpdateCycleStartDate,
     canManage,
   });
@@ -324,6 +385,37 @@ const ListStudent = () => {
               optionFilterProp="label"
             />
           </div>
+          <div className="w-full sm:w-56 md:w-80">
+            <Select
+              options={[
+                { label: "Tất cả loại gói", value: "" },
+                ...typeOptions,
+              ]}
+              placeholder="Chọn loại gói"
+              value={packageType ?? ""}
+              onChange={(value) => {
+                setPage(1);
+                setPackageType(value || null);
+              }}
+              showSearch
+              optionFilterProp="label"
+              className="w-full"
+            />
+          </div>
+          <div className="w-full sm:w-56 md:w-80">
+            <Select
+              options={birthMonthOptions}
+              placeholder="Chọn tháng sinh"
+              value={birthMonth ?? ""}
+              onChange={(value) => {
+                setPage(1);
+                setBirthMonth(value || null);
+              }}
+              showSearch
+              optionFilterProp="label"
+              className="w-full"
+            />
+          </div>
 
           {/* Called */}
           <div className="w-full sm:w-56">
@@ -355,14 +447,7 @@ const ListStudent = () => {
           <div className="w-full sm:w-auto">
             <Button
               icon={<ReloadOutlined />}
-              onClick={() => {
-                setSearch(null);
-                setBranchId(null);
-                setClassId(null);
-                setIsCalled(null);
-                setIsTexted(null);
-                setPage(1);
-              }}
+              onClick={handleResetFilters}
               className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg font-medium bg-gray-100! hover:bg-gray-200!"
             >
               Đặt lại

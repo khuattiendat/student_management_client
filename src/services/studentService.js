@@ -40,6 +40,8 @@ const studentService = {
     axiosInstance.put(`/students/${id}/is-called`, { isCalled }),
   toggleIsTexted: (id, isTexted) =>
     axiosInstance.put(`/students/${id}/is-texted`, { isTexted }),
+  updateParentZaloName: (parentId, zaloName) =>
+    axiosInstance.put(`/students/parents/${parentId}/zalo-name`, { zaloName }),
   updateCycleStartDate: (id, cycleStartDate) =>
     axiosInstance.put(`/students/${id}/cycle-start-date`, { cycleStartDate }),
   getCycles: (params) => {
