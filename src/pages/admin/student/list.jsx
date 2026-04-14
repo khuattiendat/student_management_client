@@ -534,6 +534,13 @@ const ListStudent = () => {
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
         detailStudent={detailStudent}
+        packageOptions={packageOptions}
+        onUpdated={(updatedStudent) => {
+          if (updatedStudent) {
+            setDetailStudent(updatedStudent);
+          }
+          fetchData();
+        }}
       />
     </>
   );

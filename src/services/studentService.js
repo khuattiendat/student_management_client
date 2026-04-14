@@ -63,6 +63,8 @@ const studentService = {
         isPaid,
       },
     ),
+  updateEnrollments: (id, data) =>
+    axiosInstance.put(`/students/${id}/enrollments`, data),
 };
 
 export default studentService;
