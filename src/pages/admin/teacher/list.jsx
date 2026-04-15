@@ -111,7 +111,7 @@ const ListTeacher = () => {
   return (
     <>
       <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
-        <Heading title="Danh sách giáo viên" />
+        <Heading title="Danh sách nhân sự" />
         <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
           Thêm mới
         </Button>

@@ -148,6 +148,7 @@ const ClassFormModal = ({
       selectedIdSet.has(student.value),
     );
   }, [selectedStudentIds, branchStudentOptions]);
+  console.log("selectedStudents", selectedStudents);
 
   useEffect(() => {
     const loadEditingData = async () => {
@@ -424,11 +425,12 @@ const ClassFormModal = ({
 
         const nextStudentOptions = (studentResponse?.data?.items ?? []).map(
           (student) => ({
-            label: `${student.name}${student.phone ? ` - ${student.phone}` : ""}`,
+            label: `${student.name}${student.birthday ? ` ( ${dayjs(student.birthday).format("DD/MM/YYYY")} )` : ""}`,
             value: student.id,
             name: student.name,
             phone: student.phone,
             branchName: student?.branch?.name,
+            birthday: student?.birthday,
           }),
         );
 
@@ -636,7 +638,7 @@ const ClassFormModal = ({
           />
         </Form.Item>
 
-        <Form.Item label="Gói học" className="md:col-span-2">
+        <Form.Item label="Gói học" className="md:col-span-2" required>
           <div className="space-y-3">
             {!editing ? (
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -895,6 +897,13 @@ const ClassFormModal = ({
                 dataIndex: "phone",
                 key: "phone",
                 render: (value) => value || "—",
+              },
+              {
+                title: "Năm sinh",
+                dataIndex: "birthday",
+                key: "birthday",
+                render: (value) =>
+                  value ? dayjs(value).format("DD/MM/YYYY") : "—",
               },
               {
                 title: "Cơ sở",

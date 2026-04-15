@@ -27,7 +27,7 @@ export const buildSidebarMenuItems = () => [
   {
     key: "/teachers",
     icon: <TeamOutlined />,
-    label: "Quản lý giáo viên",
+    label: "Quản lý nhân sự",
   },
   {
     key: "/classes",
