@@ -48,7 +48,9 @@ const router = createBrowserRouter([
           },
           {
             path: "classes",
-            element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
+            element: (
+              <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.RECEPTIONIST]} />
+            ),
             children: [{ index: true, element: <ListClass /> }],
           },
           {
@@ -59,18 +61,24 @@ const router = createBrowserRouter([
           {
             path: "sessions/:classId",
             element: (
-              <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.TEACHER]} />
+              <PrivateRoute
+                allowedRoles={[ROLES.ADMIN, ROLES.TEACHER, ROLES.RECEPTIONIST]}
+              />
             ),
             children: [{ index: true, element: <SessionList /> }],
           },
           {
             path: "students",
-            element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
+            element: (
+              <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.RECEPTIONIST]} />
+            ),
             children: [{ index: true, element: <ListStudent /> }],
           },
           {
             path: "calendar",
-            element: <PrivateRoute allowedRoles={[ROLES.ADMIN]} />,
+            element: (
+              <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.RECEPTIONIST]} />
+            ),
             children: [{ index: true, element: <Calendar /> }],
           },
           {

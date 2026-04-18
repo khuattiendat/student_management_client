@@ -1,25 +1,11 @@
 import axiosInstance from "./axiosInstance";
 
 const teacherService = {
-  list: (params) =>
-    axiosInstance.get("/users", {
-      params: {
-        ...params,
-        role: "teacher",
-      },
-    }),
+  list: (params) => axiosInstance.get("/users", { params }),
 
-  create: (data) =>
-    axiosInstance.post("/users", {
-      ...data,
-      role: "teacher",
-    }),
+  create: (data) => axiosInstance.post("/users", data),
 
-  update: (id, data) =>
-    axiosInstance.put(`/users/${id}`, {
-      ...data,
-      role: "teacher",
-    }),
+  update: (id, data) => axiosInstance.put(`/users/${id}`, data),
 
   remove: (id) => axiosInstance.delete(`/users/${id}`),
 };

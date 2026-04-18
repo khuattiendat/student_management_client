@@ -80,6 +80,7 @@ const ListClass = () => {
         page: 1,
         limit: 1000,
         status: "active",
+        role: ROLES.TEACHER,
       });
       return (response?.data?.items ?? []).map((teacher) => ({
         label: teacher.name,

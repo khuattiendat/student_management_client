@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Button, Modal, Select, Spin, Typography } from "antd";
 import useSWR from "swr";
 import studentService from "../../../services/studentService";
+import dayjs from "dayjs";
 
 const { Text } = Typography;
 
@@ -50,7 +51,7 @@ const CyclesModal = ({
     const items = response?.data?.items ?? [];
 
     return items.map((s) => ({
-      label: `${s.name}`,
+      label: `${s.name} (${s.birthday ? dayjs(s.birthday).format("DD/MM/YYYY") : "N/A"})`,
       value: s.id,
     }));
   });

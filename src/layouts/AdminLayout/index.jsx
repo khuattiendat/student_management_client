@@ -13,6 +13,7 @@ import useAuthStore from "../../store/authStore";
 import useBranchStore from "../../store/branchStore";
 import {
   buildSidebarMenuItems,
+  buildSidebarMenuItemsReceptionist,
   buildSidebarMenuItemsTeacher,
 } from "./menuConfig";
 import { MdPassword } from "react-icons/md";
@@ -25,7 +26,10 @@ const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
 
 const AdminLayout = () => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < 768;
+  });
   const [modalInfo, setModalInfo] = useState(false);
   const [modalChangePwd, setModalChangePwd] = useState(false);
 
@@ -56,6 +60,21 @@ const AdminLayout = () => {
     () => buildSidebarMenuItemsTeacher(),
     [],
   );
+  const sidebarMenuItemsReceptionist = useMemo(
+    () => buildSidebarMenuItemsReceptionist(),
+    [],
+  );
+  const sidebarItems = useMemo(() => {
+    if (role === ROLES.ADMIN) return sidebarMenuItems;
+    if (role === ROLES.TEACHER) return sidebarMenuItemsTeacher;
+    if (role === ROLES.RECEPTIONIST) return sidebarMenuItemsReceptionist;
+    return [];
+  }, [
+    role,
+    sidebarMenuItems,
+    sidebarMenuItemsTeacher,
+    sidebarMenuItemsReceptionist,
+  ]);
   const userMenuItems = [
     { key: "profile", icon: <UserOutlined />, label: "Hồ sơ" },
     { type: "divider" },
@@ -133,9 +152,7 @@ const AdminLayout = () => {
         >
           <Menu
             mode="inline"
-            items={
-              role == ROLES.ADMIN ? sidebarMenuItems : sidebarMenuItemsTeacher
-            }
+            items={sidebarItems}
             onClick={({ key }) => navigate(key)}
             className="border-r-0 pt-2 select-none [&_.ant-menu-item]:!mx-2 [&_.ant-menu-item]:!my-1 [&_.ant-menu-item]:rounded-lg [&_.ant-menu-item]:transition-all [&_.ant-menu-item]:duration-200 [&_.ant-menu-item:hover]:!bg-blue-50 [&_.ant-menu-item-selected]:!bg-blue-100 [&_.ant-menu-item-selected]:!text-blue-600 [&_.ant-menu-divider]:!my-3"
           />

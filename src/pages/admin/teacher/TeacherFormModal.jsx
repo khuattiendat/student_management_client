@@ -8,6 +8,11 @@ const statusOptions = [
   { label: "Ngừng hoạt động", value: "inactive" },
 ];
 
+const roleOptions = [
+  { label: "Giáo viên", value: "teacher" },
+  { label: "Lễ tân", value: "receptionist" },
+];
+
 const TeacherFormModal = ({
   open,
   onClose,
@@ -25,6 +30,7 @@ const TeacherFormModal = ({
         name: editing?.name ?? "",
         userName: editing?.userName ?? "",
         phone: editing?.phone ?? "",
+        role: editing?.role ?? "teacher",
         status: editing?.status ?? "active",
         branchIds: editing?.branches?.map((branch) => branch.id) ?? [],
         password: "",
@@ -44,6 +50,7 @@ const TeacherFormModal = ({
         name: values.name,
         userName: values.userName,
         phone: values.phone || null,
+        role: values.role,
         status: values.status,
         branchIds: values.branchIds ?? [],
       };
@@ -63,8 +70,10 @@ const TeacherFormModal = ({
       handleClose();
       onSaved({ created: !editing });
     } catch (err) {
+      console.log("Error saving teacher:", err);
+
       message.error(
-        err?.message ||
+        err?.error?.message ||
           (editing ? "Cập nhật giáo viên thất bại" : "Thêm giáo viên thất bại"),
       );
     } finally {
@@ -106,6 +115,14 @@ const TeacherFormModal = ({
 
         <Form.Item label="Số điện thoại" name="phone">
           <Input placeholder="Nhập số điện thoại" />
+        </Form.Item>
+
+        <Form.Item
+          label="Loại nhân sự"
+          name="role"
+          rules={[{ required: true, message: "Vui lòng chọn loại nhân sự" }]}
+        >
+          <Select options={roleOptions} placeholder="Chọn loại nhân sự" />
         </Form.Item>
 
         <Form.Item

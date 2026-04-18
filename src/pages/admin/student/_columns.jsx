@@ -222,7 +222,7 @@ export const buildColumns = ({
     render: (_, record) => {
       return (
         <Space>
-          {canManage ? (
+          {!canManage ? (
             <div className="flex items-center gap-2">
               <Tooltip title="Đã nhắn tin">
                 <div className="flex items-center gap-1">
@@ -275,45 +275,45 @@ export const buildColumns = ({
     align: "center",
     render: (_, record) => (
       <Space>
-        {canManage ? (
-          <>
-            <Tooltip title="Thông tin chi tiết">
-              <Button
-                type="text"
-                icon={<InfoCircleOutlined className="text-blue-500!" />}
-                onClick={() => onViewDetail(record)}
-              />
-            </Tooltip>
-            <Tooltip title="Chỉnh sửa">
-              <Button
-                type="text"
-                icon={<EditOutlined />}
-                onClick={() => onEdit(record)}
-              />
-            </Tooltip>
-            <Tooltip title="Gia hạn khóa học">
-              <Button
-                type="text"
-                icon={<ReloadOutlined />}
-                onClick={() => onRenew(record)}
-              />
-            </Tooltip>
-            <Popconfirm
-              title="Xác nhận xóa"
-              description={`Bạn có chắc muốn xóa học viên "${record.name}"?`}
-              okText="Xóa"
-              cancelText="Hủy"
-              okButtonProps={{ danger: true }}
-              onConfirm={() => onDelete(record.id)}
-            >
-              <Tooltip title="Xóa">
-                <Button type="text" danger icon={<DeleteOutlined />} />
-              </Tooltip>
-            </Popconfirm>
-          </>
-        ) : (
-          "—"
-        )}
+        <>
+          <Tooltip title="Thông tin chi tiết">
+            <Button
+              type="text"
+              icon={<InfoCircleOutlined className="text-blue-500!" />}
+              onClick={() => onViewDetail(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Chỉnh sửa">
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => onEdit(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Gia hạn khóa học">
+            <Button
+              type="text"
+              icon={<ReloadOutlined />}
+              onClick={() => onRenew(record)}
+            />
+          </Tooltip>
+          {canManage && (
+            <>
+              <Popconfirm
+                title="Xác nhận xóa"
+                description={`Bạn có chắc muốn xóa học viên "${record.name}"?`}
+                okText="Xóa"
+                cancelText="Hủy"
+                okButtonProps={{ danger: true }}
+                onConfirm={() => onDelete(record.id)}
+              >
+                <Tooltip title="Xóa">
+                  <Button type="text" danger icon={<DeleteOutlined />} />
+                </Tooltip>
+              </Popconfirm>
+            </>
+          )}
+        </>
       </Space>
     ),
   },

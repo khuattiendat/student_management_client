@@ -8,6 +8,7 @@ import { useTeacherCodeList } from "./useTeacherCodeList";
 import { buildColumns } from "./_columns";
 import TeacherCodeFormModal from "./TeacherCodeFormModal";
 import Heading from "../../../components/common/Heading";
+import { ROLES } from "../../../utils/constants";
 
 const { Title } = Typography;
 const statusOptions = [
@@ -42,6 +43,7 @@ const ListTeacherCode = () => {
         page: 1,
         limit: 1000,
         status: "active",
+        role: ROLES.TEACHER,
       });
       return (response?.data?.items ?? []).map((teacher) => ({
         label: teacher.name,

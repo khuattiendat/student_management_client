@@ -10,35 +10,10 @@ import {
   CloseCircleOutlined,
   WarningOutlined,
 } from "@ant-design/icons";
+import { statusTagConfig } from "./statusConfig";
 
 const { Text } = Typography;
-const statusTagConfig = {
-  present: {
-    color: "green",
-    icon: <CheckCircleOutlined />,
-    text: "Có mặt",
-  },
-  late: {
-    color: "orange",
-    icon: <ClockCircleOutlined />,
-    text: "Đi muộn",
-  },
-  excused_absent: {
-    color: "blue",
-    icon: <ClockCircleOutlined />,
-    text: "Vắng (có phép)",
-  },
-  unexcused_absent: {
-    color: "red",
-    icon: <CloseCircleOutlined />,
-    text: "Vắng (không phép)",
-  },
-  late_cancel_absent: {
-    color: "volcano",
-    icon: <WarningOutlined />,
-    text: "Báo nghỉ sát giờ",
-  },
-};
+
 const StudentAttendanceModal = ({ open, onClose, student }) => {
   const { message } = App.useApp();
 

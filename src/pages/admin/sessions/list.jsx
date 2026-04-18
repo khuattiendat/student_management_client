@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import useSWR from "swr";
 import {
@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   DatePicker,
+  Input,
   InputNumber,
   Modal,
   Pagination,
@@ -37,38 +38,52 @@ import BackButton from "../../../components/common/BackButton";
 import { ROLES } from "../../../utils/constants";
 import ModalAddSession from "./modal/ModalAddSesstion";
 import { ATTENDANCE_STATUS_SUGGESTIONS } from "./const";
+import { statusTagConfig } from "../student/statusConfig";
 
 const { Title, Text } = Typography;
 
-const statusTagConfig = {
-  present: {
-    color: "green",
-    icon: <CheckCircleOutlined />,
-    text: "Có mặt",
-  },
-  late: {
-    color: "orange",
-    icon: <ClockCircleOutlined />,
-    text: "Đi muộn",
-  },
-  excused_absent: {
-    color: "blue",
-    icon: <ClockCircleOutlined />,
-    text: "Vắng (có phép)",
-  },
-  unexcused_absent: {
-    color: "red",
-    icon: <CloseCircleOutlined />,
-    text: "Vắng (không phép)",
-  },
-  late_cancel_absent: {
-    color: "volcano",
-    icon: <WarningOutlined />,
-    text: "Báo nghỉ sát giờ",
-  },
+const AttendanceNoteInput = memo(function AttendanceNoteInput({
+  studentId,
+  value,
+  onCommit,
+}) {
+  const [localValue, setLocalValue] = useState(() => value || "");
+
+  const commit = () => {
+    onCommit(studentId, localValue);
+  };
+
+  return (
+    <Input
+      value={localValue}
+      onChange={(event) => setLocalValue(event.target.value)}
+      onBlur={commit}
+      onPressEnter={commit}
+      placeholder="Nhập ghi chú"
+      className="w-full"
+      allowClear
+    />
+  );
+});
+
+const getAttendanceWindowState = (sessionDateValue) => {
+  const today = dayjs().startOf("day");
+  const sessionDay = dayjs(sessionDateValue).startOf("day");
+
+  if (!sessionDay.isValid()) {
+    return { canTakeAttendance: false };
+  }
+
+  const diffInDays = sessionDay.diff(today, "day");
+
+  return {
+    canTakeAttendance: diffInDays === 0 || diffInDays === 1,
+  };
 };
+
 const SessionList = () => {
   const userRole = useAuthStore((s) => s.user?.role);
+  const canManager = [ROLES.ADMIN, ROLES.TEACHER].includes(userRole);
   const { message } = App.useApp();
   const [page, setPage] = useState(1);
   const limit = 10;
@@ -160,6 +175,15 @@ const SessionList = () => {
   const tableLoading = sessionsLoading || sessionsValidating;
 
   const openAttendanceModal = async (sessionRecord) => {
+    const { canTakeAttendance } = getAttendanceWindowState(
+      sessionRecord?.sessionDate,
+    );
+
+    if (!canTakeAttendance) {
+      message.warning("Chỉ cho phép điểm danh trong ngày hoặc trước 1 ngày");
+      return;
+    }
+
     setSelectedSession(sessionRecord);
     setAttendanceOpen(true);
 
@@ -171,9 +195,13 @@ const SessionList = () => {
         key: item.studentId,
         studentId: item.studentId,
         name: item?.student?.name,
+        birthday: item?.student?.birthday
+          ? dayjs(item.student.birthday).format("DD/MM/YYYY")
+          : null,
         phone: item?.student?.phone,
         status: item?.status ?? "",
         rate: item?.rate ?? 5,
+        note: item?.note ?? "",
       }));
 
       setHasExistingAttendance((attendanceDetail?.totalTaken ?? 0) > 0);
@@ -187,6 +215,7 @@ const SessionList = () => {
         phone: student.phone,
         status: "",
         rate: 5,
+        note: "",
       }));
       setHasExistingAttendance(false);
       setAttendanceRows(fallbackRows);
@@ -210,16 +239,34 @@ const SessionList = () => {
     }
   };
 
-  const updateAttendanceRow = (studentId, field, value) => {
+  const updateAttendanceRow = useCallback((studentId, field, value) => {
     setAttendanceRows((prev) =>
-      prev.map((row) =>
-        row.studentId === studentId ? { ...row, [field]: value } : row,
-      ),
+      prev.map((row) => {
+        if (row.studentId !== studentId) return row;
+        if (row[field] === value) return row;
+        return { ...row, [field]: value };
+      }),
     );
-  };
+  }, []);
+
+  const updateAttendanceNote = useCallback(
+    (studentId, note) => {
+      updateAttendanceRow(studentId, "note", note);
+    },
+    [updateAttendanceRow],
+  );
 
   const submitAttendance = async () => {
     if (!selectedSession?.id) return;
+
+    const { canTakeAttendance } = getAttendanceWindowState(
+      selectedSession?.sessionDate,
+    );
+
+    if (!canTakeAttendance) {
+      message.warning("Chỉ cho phép điểm danh trong ngày hoặc trước 1 ngày");
+      return;
+    }
 
     const hasInvalidStatus = attendanceRows.some(
       (row) => !String(row.status || "").trim(),
@@ -234,6 +281,7 @@ const SessionList = () => {
       attendances: attendanceRows.map((row) => ({
         studentId: row.studentId,
         status: String(row.status).trim(),
+        note: String(row.note || "").trim(),
         ...(row.rate === null || row.rate === undefined
           ? {}
           : { rate: row.rate }),
@@ -300,47 +348,25 @@ const SessionList = () => {
           return <Tag color="default">Chưa điểm danh</Tag>;
         }
 
-        const countByStatus = (status) =>
-          attendances.filter((a) => String(a.status).toLowerCase() === status)
-            .length;
-
-        const presentCount = countByStatus("present");
-        const lateCount = countByStatus("late");
-        const excusedCount = countByStatus("excused_absent");
-        const unexcusedCount = countByStatus("unexcused_absent");
-        const lateCancelCount = countByStatus("late_cancel_absent");
+        const countMap = attendances.reduce((acc, a) => {
+          const key = String(a.status).toLowerCase();
+          acc[key] = (acc[key] || 0) + 1;
+          return acc;
+        }, {});
 
         return (
           <Space size="small" wrap>
-            {presentCount > 0 && (
-              <Tag color="green" icon={<CheckCircleOutlined />}>
-                Có mặt: {presentCount}
-              </Tag>
-            )}
+            {Object.entries(countMap).map(([status, count]) => {
+              const config = statusTagConfig[status];
 
-            {lateCount > 0 && (
-              <Tag color="orange" icon={<ClockCircleOutlined />}>
-                Muộn: {lateCount}
-              </Tag>
-            )}
+              if (!config) return null;
 
-            {excusedCount > 0 && (
-              <Tag color="blue" icon={<ClockCircleOutlined />}>
-                Có phép: {excusedCount}
-              </Tag>
-            )}
-
-            {unexcusedCount > 0 && (
-              <Tag color="red" icon={<CloseCircleOutlined />}>
-                Không phép: {unexcusedCount}
-              </Tag>
-            )}
-
-            {lateCancelCount > 0 && (
-              <Tag color="volcano" icon={<WarningOutlined />}>
-                Sát giờ: {lateCancelCount}
-              </Tag>
-            )}
+              return (
+                <Tag key={status} color={config.color} icon={config.icon}>
+                  {config.text}: {count}
+                </Tag>
+              );
+            })}
           </Space>
         );
       },
@@ -350,31 +376,51 @@ const SessionList = () => {
       key: "attendance",
       width: 140,
       align: "center",
-      render: (_, record) => (
-        <Space>
-          <Button type="primary" onClick={() => openAttendanceModal(record)}>
-            Điểm danh
-          </Button>
-          <Popconfirm
-            title="Xác nhận xóa"
-            description={`Bạn có chắc muốn xóa buổi học này"?`}
-            okText="Xóa"
-            cancelText="Hủy"
-            okButtonProps={{ danger: true }}
-            onConfirm={() => {
-              if (userRole === ROLES.ADMIN) {
-                setCode("");
-                handleDeleteSession(record.id, code);
-              } else {
-                setSelectedSession(record);
-                setOpenCodeModal(true);
+      render: (_, record) => {
+        const { canTakeAttendance } = getAttendanceWindowState(
+          record.sessionDate,
+        );
+
+        return (
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => openAttendanceModal(record)}
+              disabled={!canTakeAttendance}
+              title={
+                canTakeAttendance
+                  ? "Điểm danh"
+                  : "Chỉ cho phép điểm danh trong ngày hoặc trước 1 ngày"
               }
-            }}
-          >
-            <Button type="text" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        </Space>
-      ),
+            >
+              Điểm danh
+            </Button>
+            <Popconfirm
+              title="Xác nhận xóa"
+              description={`Bạn có chắc muốn xóa buổi học này"?`}
+              okText="Xóa"
+              cancelText="Hủy"
+              okButtonProps={{ danger: true }}
+              onConfirm={() => {
+                if (userRole === ROLES.ADMIN) {
+                  setCode("");
+                  handleDeleteSession(record.id, code);
+                } else {
+                  setSelectedSession(record);
+                  setOpenCodeModal(true);
+                }
+              }}
+            >
+              <Button
+                disabled={!canManager}
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+              />
+            </Popconfirm>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -404,12 +450,29 @@ const SessionList = () => {
       title: "Học sinh",
       dataIndex: "name",
       key: "name",
+      render: (_, record) => (
+        <div>
+          {record.name || "—"} {record?.birthday}{" "}
+        </div>
+      ),
     },
     {
       title: "Số điện thoại",
       dataIndex: "phone",
       key: "phone",
       render: (value) => value || "—",
+    },
+    {
+      title: "note",
+      key: "note",
+      width: 260,
+      render: (_, row) => (
+        <AttendanceNoteInput
+          studentId={row.studentId}
+          value={row.note || ""}
+          onCommit={updateAttendanceNote}
+        />
+      ),
     },
     {
       title: "Trạng thái",
@@ -576,7 +639,7 @@ const SessionList = () => {
           scroll={{ x: "max-content" }}
         />
       </Card>
-      <div className="flex items-center gap-2 justify-between">
+      <div className="flex items-center gap-2 justify-between flex-wrap">
         <div>
           <DatePicker
             value={sessionDate}
@@ -599,16 +662,18 @@ const SessionList = () => {
           >
             Tạo buổi bù
           </Button> */}
-          <Button type="primary" onClick={() => setOpenAddSessionModal(true)}>
-            Thêm buổi học
-          </Button>
+          {canManager && (
+            <Button type="primary" onClick={() => setOpenAddSessionModal(true)}>
+              Thêm buổi học
+            </Button>
+          )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             icon={<LeftOutlined />}
             onClick={prevWeek}
             type="primary"
-            className="!bg-yellow-400"
+            className="bg-yellow-400!"
           >
             Tuần trước
           </Button>
@@ -620,7 +685,7 @@ const SessionList = () => {
             onClick={nextWeek}
             type="primary"
             iconPosition="end"
-            className="!bg-green-400"
+            className="bg-green-400!"
           >
             Tuần sau
           </Button>
@@ -658,10 +723,28 @@ const SessionList = () => {
           setAttendanceRows([]);
           setHasExistingAttendance(false);
         }}
-        onOk={submitAttendance}
-        okText={hasExistingAttendance ? "Cập nhật điểm danh" : "Lưu điểm danh"}
-        cancelText="Hủy"
-        confirmLoading={attendanceSaving}
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => {
+              setAttendanceOpen(false);
+              setSelectedSession(null);
+              setAttendanceRows([]);
+              setHasExistingAttendance(false);
+            }}
+          >
+            Hủy
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            onClick={submitAttendance}
+            loading={attendanceSaving}
+            disabled={attendanceLoading || !canManager}
+          >
+            {hasExistingAttendance ? "Cập nhật điểm danh" : "Lưu điểm danh"}
+          </Button>,
+        ]}
         width={1100}
         destroyOnHidden
       >
@@ -703,7 +786,7 @@ const SessionList = () => {
           placeholder="Nhập mã code để xác nhận xóa"
           value={code}
           onChange={(value) => setCode(value)}
-          className="!w-full"
+          className="w-full!"
           required
         />
       </Modal>

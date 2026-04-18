@@ -18,6 +18,11 @@ const statusOptions = [
   { label: "Hoạt động", value: "active" },
   { label: "Ngừng hoạt động", value: "inactive" },
 ];
+const roleOptions = [
+  { label: "Tất cả loại nhân sự", value: "" },
+  { label: "Giáo viên", value: "teacher" },
+  { label: "Lễ tân", value: "receptionist" },
+];
 
 const ListTeacher = () => {
   const {
@@ -36,6 +41,8 @@ const ListTeacher = () => {
     setBranchId,
     fetchData,
     handleDelete,
+    role,
+    setRole,
   } = useTeacherList();
 
   const { data: branchOptions = [] } = useSWR(
@@ -154,6 +161,18 @@ const ListTeacher = () => {
               className="w-full"
               showSearch
               optionFilterProp="label"
+            />
+          </div>
+
+          <div className="w-full md:w-56">
+            <Select
+              value={role ?? ""}
+              options={roleOptions}
+              onChange={(value) => {
+                setPage(1);
+                setRole(value || null);
+              }}
+              className="w-full"
             />
           </div>
         </div>

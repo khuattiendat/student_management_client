@@ -275,7 +275,9 @@ const DetailModal = ({
     } catch (err) {
       if (err?.errorFields) return;
       message.error(
-        err?.response?.data?.message || err?.message || "Đổi gói học thất bại",
+        err?.response?.data?.message ||
+          err?.error?.message ||
+          "Đổi gói học thất bại",
       );
     } finally {
       setSaving(false);

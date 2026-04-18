@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
 import authService from "../../services/authService";
 import { useState } from "react";
+import { ROLES } from "../../utils/constants";
 
 const { Title, Text } = Typography;
 
@@ -23,17 +24,24 @@ const Login = () => {
       const response = await authService.login(values);
       const role = response.data?.user?.role;
       await login(response.data);
-      if (role === "admin") {
-        login(response.data);
-        message.success("Đăng nhập thành công!");
-        navigate(from, { replace: true });
-        setLoading(false);
-      } else {
-        login(response.data);
-        message.success("Đăng nhập thành công");
-        navigate("/giao-vien/danh-sach-lop-hoc", { replace: true });
-        setLoading(false);
+      switch (role) {
+        case ROLES.ADMIN:
+          message.success("Đăng nhập thành công!");
+          navigate(from, { replace: true });
+          break;
+        case ROLES.TEACHER:
+          message.success("Đăng nhập thành công");
+          navigate("/giao-vien/danh-sach-lop-hoc", { replace: true });
+          break;
+        case ROLES.RECEPTIONIST:
+          message.success("Đăng nhập thành công");
+          navigate("/students", { replace: true });
+          break;
+        default:
+          message.success("Đăng nhập thành công");
+          navigate("/", { replace: true });
       }
+      setLoading(false);
     } catch (err) {
       setLoading(false);
       const errorMessage =

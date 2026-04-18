@@ -23,6 +23,7 @@ import {
   subjectOptions,
 } from "../package/packageFormOptions";
 import { comboTypeLabels } from "../package/_columns";
+import { ROLES } from "../../../utils/constants";
 
 const { Text } = Typography;
 
@@ -148,7 +149,6 @@ const ClassFormModal = ({
       selectedIdSet.has(student.value),
     );
   }, [selectedStudentIds, branchStudentOptions]);
-  console.log("selectedStudents", selectedStudents);
 
   useEffect(() => {
     const loadEditingData = async () => {
@@ -401,6 +401,7 @@ const ClassFormModal = ({
           limit: 1000,
           status: "active",
           branchId: Number(selectedBranchId),
+          role: ROLES.TEACHER,
         });
 
         const studentPromise =

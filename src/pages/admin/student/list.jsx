@@ -1,20 +1,13 @@
 import { useState } from "react";
+import { Select, Table, Button, Typography, message } from "antd";
 import {
-  Select,
-  Space,
-  Table,
-  Button,
-  Typography,
-  message,
-  Modal,
-  Tag,
-} from "antd";
-import {
-  DownOutlined,
+  ExportOutlined,
   ImportOutlined,
   PlusOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
+import ExcelJS from "exceljs";
+import dayjs from "dayjs";
 import useSWR from "swr";
 import InputSearch from "../../../components/common/InputSearch";
 import branchService from "../../../services/branchService";
@@ -62,6 +55,64 @@ const birthMonthOptions = [
   { label: "Tháng 12", value: "12" },
 ];
 
+const EXPORT_LIMIT = 1000000;
+
+const normalizeText = (value) =>
+  value === null || value === undefined ? "" : String(value);
+
+const joinNames = (items = [], selector = (item) => item?.name) =>
+  items
+    .map((item) => normalizeText(selector(item)).trim())
+    .filter(Boolean)
+    .join(" | ");
+
+const buildStudentExportRows = (students = []) =>
+  students.map((student, index) => ({
+    stt: index + 1,
+    id: normalizeText(student?.id),
+    name: normalizeText(student?.name),
+    phone: normalizeText(student?.phone),
+    birthday: student?.birthday
+      ? dayjs(student.birthday).format("DD/MM/YYYY")
+      : "",
+    branch: normalizeText(student?.branch?.name),
+    addressDetail: normalizeText(student?.addressDetail),
+    wardName: normalizeText(student?.wardName),
+    districtName: normalizeText(student?.districtName),
+    provinceName: normalizeText(student?.provinceName),
+    parents: joinNames(student?.parents, (parent) => parent?.name),
+    parentPhones: joinNames(student?.parents, (parent) => parent?.phone),
+    parentEmails: joinNames(student?.parents, (parent) => parent?.email),
+    parentZaloNames: joinNames(student?.parents, (parent) => parent?.zaloName),
+    classNames: joinNames(
+      student?.classStudents,
+      (item) => item?.classEntity?.name,
+    ),
+    packageNames: joinNames(student?.packages, (item) => item?.name),
+    learnedSessions: student?.learnedSessions ?? 0,
+    remainingSessions: student?.remainingSessions ?? 0,
+    isCalled: student?.isCalled ? "Đã gọi" : "Chưa gọi",
+    isTexted: student?.isTexted ? "Đã nhắn tin" : "Chưa nhắn tin",
+  }));
+
+const downloadExcelBuffer = async (workbook, fileName) => {
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = fileName;
+  link.style.display = "none";
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
 const ListStudent = () => {
   const {
     items,
@@ -92,6 +143,7 @@ const ListStudent = () => {
 
   const userRole = useAuthStore((s) => s.user?.role);
   const canManage = userRole === ROLES.ADMIN;
+  const [exporting, setExporting] = useState(false);
 
   const { data: branchOptions = [] } = useSWR(
     ["student-branch-options"],
@@ -159,23 +211,23 @@ const ListStudent = () => {
   };
 
   const openCreate = () => {
-    if (!canManage) return;
+    // if (!canManage) return;
     setEditing(null);
     setModalOpen(true);
   };
   const openViewCycles = () => {
-    if (!canManage) return;
+    // if (!canManage) return;
     setOpenCyclesModal(true);
   };
 
   const openEdit = (record) => {
-    if (!canManage) return;
+    // if (!canManage) return;
     setEditing(record);
     setModalOpen(true);
   };
 
   const openRenew = (record) => {
-    if (!canManage) return;
+    // if (!canManage) return;
     setRenewingStudent(record);
     setRenewModalOpen(true);
   };
@@ -183,6 +235,165 @@ const ListStudent = () => {
   const openDetail = (record) => {
     setDetailStudent(record);
     setDetailOpen(true);
+  };
+
+  const handleExportStudents = async () => {
+    try {
+      setExporting(true);
+
+      const response = await studentService.list({
+        page: 1,
+        limit: EXPORT_LIMIT,
+      });
+
+      const students = response?.data?.items ?? [];
+
+      if (!students.length) {
+        message.warning("Không có học viên nào để xuất file Excel");
+        return;
+      }
+
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = "Student Management";
+      workbook.created = new Date();
+      workbook.modified = new Date();
+      workbook.properties.date1904 = false;
+
+      const worksheet = workbook.addWorksheet("HocVien", {
+        views: [{ state: "frozen", ySplit: 3 }],
+        pageSetup: {
+          orientation: "landscape",
+          fitToPage: true,
+          fitToWidth: 1,
+          fitToHeight: 0,
+        },
+      });
+
+      const columns = [
+        { header: "STT", key: "stt", width: 8 },
+        { header: "Mã học viên", key: "id", width: 16 },
+        { header: "Họ tên", key: "name", width: 24 },
+        { header: "Số điện thoại", key: "phone", width: 18 },
+        { header: "Ngày sinh", key: "birthday", width: 14 },
+        { header: "Cơ sở", key: "branch", width: 22 },
+        { header: "Địa chỉ chi tiết", key: "addressDetail", width: 24 },
+        { header: "Phường/Xã", key: "wardName", width: 18 },
+        { header: "Quận/Huyện", key: "districtName", width: 18 },
+        { header: "Tỉnh/Thành", key: "provinceName", width: 18 },
+        { header: "Tên phụ huynh", key: "parents", width: 24 },
+        { header: "SĐT phụ huynh", key: "parentPhones", width: 20 },
+        { header: "Email phụ huynh", key: "parentEmails", width: 28 },
+        { header: "Zalo phụ huynh", key: "parentZaloNames", width: 24 },
+        { header: "Lớp học", key: "classNames", width: 24 },
+        { header: "Gói học", key: "packageNames", width: 24 },
+        { header: "Số buổi đã học", key: "learnedSessions", width: 16 },
+        { header: "Buổi còn lại", key: "remainingSessions", width: 14 },
+        { header: "Đã gọi", key: "isCalled", width: 12 },
+        { header: "Đã nhắn tin", key: "isTexted", width: 14 },
+      ];
+
+      const headerRowIndex = 3;
+      const dataRows = buildStudentExportRows(students);
+
+      worksheet.columns = columns;
+      worksheet.mergeCells(1, 1, 1, columns.length);
+      worksheet.getCell(1, 1).value = "DANH SÁCH HỌC VIÊN";
+      worksheet.getCell(1, 1).font = {
+        bold: true,
+        size: 16,
+        color: { argb: "FFFFFFFF" },
+      };
+      worksheet.getCell(1, 1).alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+      worksheet.getCell(1, 1).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF1F4E78" },
+      };
+
+      worksheet.mergeCells(2, 1, 2, columns.length);
+      worksheet.getCell(2, 1).value =
+        `Tổng ${students.length} học viên | Xuất lúc ${dayjs().format("HH:mm DD/MM/YYYY")}`;
+      worksheet.getCell(2, 1).font = {
+        italic: true,
+        color: { argb: "FF475569" },
+      };
+      worksheet.getCell(2, 1).alignment = {
+        horizontal: "left",
+        vertical: "middle",
+      };
+
+      const headerRow = worksheet.getRow(headerRowIndex);
+      headerRow.values = columns.map((column) => column.header);
+      headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      headerRow.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+        wrapText: true,
+      };
+      headerRow.height = 24;
+      headerRow.eachCell((cell) => {
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FF2563EB" },
+        };
+        cell.border = {
+          top: { style: "thin", color: { argb: "FFD1D5DB" } },
+          left: { style: "thin", color: { argb: "FFD1D5DB" } },
+          bottom: { style: "thin", color: { argb: "FFD1D5DB" } },
+          right: { style: "thin", color: { argb: "FFD1D5DB" } },
+        };
+      });
+
+      dataRows.forEach((row, index) => {
+        const excelRow = worksheet.addRow(row);
+        excelRow.height = 22;
+        excelRow.alignment = { vertical: "middle", wrapText: true };
+
+        excelRow.eachCell((cell, columnNumber) => {
+          cell.border = {
+            top: { style: "thin", color: { argb: "FFE5E7EB" } },
+            left: { style: "thin", color: { argb: "FFE5E7EB" } },
+            bottom: { style: "thin", color: { argb: "FFE5E7EB" } },
+            right: { style: "thin", color: { argb: "FFE5E7EB" } },
+          };
+
+          cell.alignment = {
+            vertical: "middle",
+            wrapText: true,
+            horizontal:
+              columnNumber === 1 || columnNumber >= 17 ? "center" : "left",
+          };
+
+          if (index % 2 === 1) {
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "FFF8FAFC" },
+            };
+          }
+        });
+      });
+
+      worksheet.autoFilter = {
+        from: `A${headerRowIndex}`,
+        to: `${String.fromCharCode(64 + columns.length)}${headerRowIndex}`,
+      };
+
+      await downloadExcelBuffer(
+        workbook,
+        `danh-sach-hoc-vien-${dayjs().format("YYYYMMDD-HHmmss")}.xlsx`,
+      );
+
+      message.success("Xuất file Excel thành công");
+    } catch (err) {
+      message.error(err?.message || "Xuất file Excel thất bại");
+    } finally {
+      setExporting(false);
+    }
   };
 
   const handleSaved = ({ created }) => {
@@ -324,21 +535,27 @@ const ListStudent = () => {
     <>
       <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
         <Heading title="Danh sách học viên" />
-        {canManage ? (
-          <div className="flex gap-3 flex-wrap">
-            <Button
-              type="dashed"
-              className="bg-red-600! text-white!"
-              icon={<ImportOutlined />}
-              onClick={openViewCycles}
-            >
-              Xem chu kỳ học
-            </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-              Thêm mới
-            </Button>
-          </div>
-        ) : null}
+        <div className="flex gap-3 flex-wrap">
+          <Button
+            className="bg-green-600! text-white!"
+            icon={<ExportOutlined />}
+            onClick={handleExportStudents}
+            loading={exporting}
+          >
+            Export Excel
+          </Button>
+          <Button
+            type="dashed"
+            className="bg-red-600! text-white!"
+            icon={<ImportOutlined />}
+            onClick={openViewCycles}
+          >
+            Xem chu kỳ học
+          </Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+            Thêm mới
+          </Button>
+        </div>
       </div>
 
       <div className="mb-4">

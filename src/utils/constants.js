@@ -2,6 +2,7 @@ export const ROLES = {
   ADMIN: "admin",
   TEACHER: "teacher",
   STUDENT: "student",
+  RECEPTIONIST: "receptionist",
 };
 
 export const API_BASE_URL =

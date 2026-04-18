@@ -74,3 +74,20 @@ export const buildSidebarMenuItemsTeacher = () => [
     label: "Quản lý lịch học",
   },
 ];
+export const buildSidebarMenuItemsReceptionist = () => [
+  {
+    key: "/classes",
+    icon: <ReadOutlined />,
+    label: "Danh sách lớp học",
+  },
+  {
+    key: "/students",
+    icon: <UserOutlined />,
+    label: "Danh sách học viên",
+  },
+  {
+    key: "/calendar",
+    icon: <CalendarFilled />,
+    label: "Danh sách lịch học",
+  },
+];

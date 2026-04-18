@@ -3,12 +3,17 @@ import dayjs from "dayjs";
 
 const { Paragraph, Text, Title } = Typography;
 
+// ================= HELPERS =================
 const STATUS_META = {
   present: { label: "Có mặt", color: "green" },
   late: { label: "Đi muộn", color: "orange" },
-  excused_absent: { label: "Vắng có phép", color: "blue" },
-  unexcused_absent: { label: "Vắng không phép", color: "red" },
+  excused_absent: { label: "Nghỉ có phép chính đáng", color: "blue" },
+  unexcused_absent: { label: "Nghỉ không phép", color: "red" },
   late_cancel_absent: { label: "Báo nghỉ sát giờ", color: "volcano" },
+  unjustified_leave: {
+    label: "Nghỉ có phép nhưng không chính đáng",
+    color: "magenta",
+  },
   predicted: { label: "Dự đoán", color: "geekblue" },
   unmarked: { label: "Chưa điểm danh", color: "default" },
 };
@@ -19,6 +24,7 @@ const TRACKED_STATUSES = [
   "excused_absent",
   "unexcused_absent",
   "late_cancel_absent",
+  "unjustified_leave",
 ];
 
 const formatDate = (value) => {
@@ -36,8 +42,9 @@ const getSessionStartDateTime = (session) => {
   const sessionDate = dayjs(session?.sessionDate);
   if (!sessionDate.isValid()) return null;
 
-  const startTime = String(session?.startTime || "");
-  const [h = "0", m = "0", s = "0"] = startTime.split(":");
+  const [h = "0", m = "0", s = "0"] = String(session?.startTime || "").split(
+    ":",
+  );
 
   return sessionDate
     .hour(Number(h) || 0)
@@ -45,6 +52,8 @@ const getSessionStartDateTime = (session) => {
     .second(Number(s) || 0)
     .millisecond(0);
 };
+
+// ================= CORE LOGIC =================
 
 const buildStudentReport = (student, schedule = []) => {
   const attendanceBySessionId = new Map(
@@ -61,8 +70,10 @@ const buildStudentReport = (student, schedule = []) => {
     .map((session) => {
       const attendance = attendanceBySessionId.get(session.id);
       const sessionStart = getSessionStartDateTime(session);
+
       const isFutureSession =
         !attendance && !!sessionStart && sessionStart.isAfter(dayjs());
+
       const status = isFutureSession
         ? "predicted"
         : normalizeStatus(attendance?.status);
@@ -76,23 +87,25 @@ const buildStudentReport = (student, schedule = []) => {
       };
     });
 
-  const totalByStatus = TRACKED_STATUSES.reduce(
-    (acc, status) => ({ ...acc, [status]: 0 }),
-    {},
-  );
+  const totalByStatus = TRACKED_STATUSES.reduce((acc, status) => {
+    acc[status] = 0;
+    return acc;
+  }, {});
 
   timeline.forEach((item) => {
-    if (Object.prototype.hasOwnProperty.call(totalByStatus, item.status)) {
-      totalByStatus[item.status] += 1;
+    if (totalByStatus.hasOwnProperty(item.status)) {
+      totalByStatus[item.status]++;
     }
   });
 
   const totalUnmarked = timeline.filter(
     (item) => item.status === "unmarked",
   ).length;
+
   const totalPredicted = timeline.filter(
     (item) => item.status === "predicted",
   ).length;
+
   const totalMarked = timeline.length - totalUnmarked - totalPredicted;
 
   return {
@@ -105,10 +118,13 @@ const buildStudentReport = (student, schedule = []) => {
   };
 };
 
+// ================= COMPONENT =================
+
 const CycleReportModal = ({ open, onClose, data }) => {
   const classInfo = data?.class;
   const schedule = data?.schedule ?? [];
   const students = data?.students ?? [];
+
   const reports = students.map((student) =>
     buildStudentReport(student, schedule),
   );
@@ -117,6 +133,7 @@ const CycleReportModal = ({ open, onClose, data }) => {
     if (!reports.length) return;
 
     const lines = [];
+
     lines.push("Báo cáo điểm danh theo lịch học");
     lines.push(`Lớp: ${classInfo?.name || "-"}`);
     lines.push(`Ngày xuất: ${dayjs().format("YYYY-MM-DD HH:mm:ss")}`);
@@ -136,12 +153,15 @@ const CycleReportModal = ({ open, onClose, data }) => {
       lines.push("");
 
       lines.push("TOÀN BỘ LỊCH HỌC VÀ ĐIỂM DANH:");
+
       if (!report.timeline.length) {
         lines.push("- Không có dữ liệu");
       } else {
         report.timeline.forEach((item) => {
           lines.push(
-            `- ${formatDate(item.sessionDate)} : ${STATUS_META[item.status].label}`,
+            `- ${formatDate(item.sessionDate)} : ${
+              STATUS_META[item.status].label
+            }`,
           );
         });
       }
@@ -156,16 +176,24 @@ const CycleReportModal = ({ open, onClose, data }) => {
       }
     });
 
-    const content = lines.join("\n");
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const blob = new Blob([lines.join("\n")], {
+      type: "text/plain;charset=utf-8",
+    });
+
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
+
     const className = (classInfo?.name || "lop").replace(/\s+/g, "_");
+
     link.href = url;
-    link.download = `bao-cao-diem-danh-${className}-${dayjs().format("YYYYMMDD-HHmmss")}.txt`;
+    link.download = `bao-cao-diem-danh-${className}-${dayjs().format(
+      "YYYYMMDD-HHmmss",
+    )}.txt`;
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
     URL.revokeObjectURL(url);
   };
 
@@ -187,40 +215,41 @@ const CycleReportModal = ({ open, onClose, data }) => {
               Xuất báo cáo
             </Button>
           </div>
+
           {reports.map((report, idx) => (
             <div
               key={`${report.studentName}-${idx}`}
               className="mb-8 last:mb-0"
             >
-              <Title level={5} className="mb-2!">
-                Học viên: {report.studentName}
-              </Title>
-              <Paragraph className="mb-4!">
-                Lớp đang xem: <Text strong>{classInfo?.name || "-"}</Text>
+              <Title level={5}>Học viên: {report.studentName}</Title>
+
+              <Paragraph>
+                Lớp: <Text strong>{classInfo?.name || "-"}</Text>
               </Paragraph>
 
-              <Title level={5} className="mb-2!">
-                THỐNG KÊ THEO TRẠNG THÁI
-              </Title>
+              {/* ===== SUMMARY ===== */}
+              <Title level={5}>THỐNG KÊ</Title>
+
               <div className="mb-4 flex flex-wrap gap-2">
                 {TRACKED_STATUSES.map((status) => (
                   <Tag key={status} color={STATUS_META[status].color}>
                     {STATUS_META[status].label}: {report.totalByStatus[status]}
                   </Tag>
                 ))}
+
                 <Tag color={STATUS_META.unmarked.color}>
                   {STATUS_META.unmarked.label}: {report.totalUnmarked}
                 </Tag>
               </div>
 
-              <Title level={5} className="mb-2!">
-                TOÀN BỘ LỊCH HỌC VÀ ĐIỂM DANH
-              </Title>
+              {/* ===== TIMELINE ===== */}
+              <Title level={5}>LỊCH HỌC & ĐIỂM DANH</Title>
+
               <div className="mb-4 flex flex-col gap-1">
                 {report.timeline.length ? (
                   report.timeline.map((item) => (
                     <div key={item.id}>
-                      <Text>- {formatDate(item.sessionDate)} </Text>
+                      <Text>- {formatDate(item.sessionDate)}</Text>
                       <Tag
                         color={STATUS_META[item.status].color}
                         className="ml-2"
@@ -234,16 +263,15 @@ const CycleReportModal = ({ open, onClose, data }) => {
                 )}
               </div>
 
-              <Title level={5} className="mb-2!">
-                TỔNG KẾT
-              </Title>
-              <Paragraph className="mb-1!">
-                - Tổng số buổi theo lịch học:{" "}
-                <Text strong>{report.timeline.length}</Text>
+              {/* ===== TOTAL ===== */}
+              <Title level={5}>TỔNG KẾT</Title>
+
+              <Paragraph>
+                - Tổng số buổi: <Text strong>{report.timeline.length}</Text>
               </Paragraph>
-              <Paragraph className="mb-0!">
-                - Tổng số buổi đã điểm danh:{" "}
-                <Text strong>{report.totalMarked}</Text>
+
+              <Paragraph>
+                - Đã điểm danh: <Text strong>{report.totalMarked}</Text>
               </Paragraph>
             </div>
           ))}
