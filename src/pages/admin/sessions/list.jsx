@@ -171,7 +171,7 @@ const SessionList = () => {
     const diffInDays = sessionDay.diff(today, "day");
 
     return {
-      canTakeAttendance: diffInDays === 0 || diffInDays === -1 || isAdmin,
+      canTakeAttendance: diffInDays === 0 || isAdmin,
     };
   };
 
@@ -181,7 +181,7 @@ const SessionList = () => {
     );
 
     if (!canTakeAttendance) {
-      message.warning("Chỉ cho phép điểm danh trong ngày hoặc trước 1 ngày");
+      message.warning("Chỉ cho phép điểm danh trong ngày");
       return;
     }
 
@@ -265,7 +265,7 @@ const SessionList = () => {
     );
 
     if (!canTakeAttendance) {
-      message.warning("Chỉ cho phép điểm danh trong ngày hoặc trước 1 ngày");
+      message.warning("Chỉ cho phép điểm danh trong ngày");
       return;
     }
 
@@ -391,7 +391,7 @@ const SessionList = () => {
               title={
                 canTakeAttendance
                   ? "Điểm danh"
-                  : "Chỉ cho phép điểm danh trong ngày hoặc trước 1 ngày"
+                  : "Chỉ cho phép điểm danh trong ngày"
               }
             >
               Điểm danh
