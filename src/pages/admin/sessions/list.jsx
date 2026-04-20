@@ -171,7 +171,7 @@ const SessionList = () => {
     const diffInDays = sessionDay.diff(today, "day");
 
     return {
-      canTakeAttendance: diffInDays === 0 || diffInDays === 1 || isAdmin,
+      canTakeAttendance: diffInDays === 0 || diffInDays === -1 || isAdmin,
     };
   };
 
