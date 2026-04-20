@@ -404,27 +404,7 @@ const ListStudent = () => {
       fetchData();
     }
   };
-  // const handleUpdateCycleStartDate = async (studentId, value) => {
-  //   const cycleStartDate = value ? dayjs(value).format("YYYY-MM-DD") : null;
-  //   try {
-  //     await studentService.updateCycleStartDate(studentId, cycleStartDate);
-  //     mutate((prev) => {
-  //       if (!prev) return prev;
-  //       const nextItems = (prev.items || []).map((student) =>
-  //         student.id === studentId ? { ...student, cycleStartDate } : student,
-  //       );
-  //       return { ...prev, items: nextItems };
-  //     }, false);
-  //     setDetailStudent((prev) =>
-  //       prev?.id === studentId ? { ...prev, cycleStartDate } : prev,
-  //     );
-  //     message.success("Cập nhật ngày bắt đầu chu kỳ thành công");
-  //   } catch (err) {
-  //     message.error(
-  //       err?.response?.data?.message || "Cập nhật ngày bắt đầu chu kỳ thất bại",
-  //     );
-  //   }
-  // };
+
   const handleUpdateNotifications = async (id, type, value) => {
     // Optimistic UI update: update SWR cache without refetching list API
     mutate((prev) => {

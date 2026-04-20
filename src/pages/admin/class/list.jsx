@@ -13,6 +13,7 @@ import { useClassList } from "./useClassList";
 import { buildColumns } from "./_columns";
 import ClassFormModal from "./ClassFormModal";
 import Heading from "../../../components/common/Heading";
+import { typeOptions } from "../package/packageFormOptions";
 
 const { Title } = Typography;
 
@@ -27,12 +28,6 @@ const statusOptions = [
   { label: "Hoạt động", value: "active" },
   { label: "Ngừng hoạt động", value: "inactive" },
   { label: "Đã hoàn thành", value: "completed" },
-];
-
-const typeOptions = [
-  { label: "Tất cả loại lớp", value: "" },
-  { label: "Lớp phổ thông", value: "general" },
-  { label: "Lớp chứng chỉ", value: "certificate" },
 ];
 
 const ListClass = () => {
@@ -248,7 +243,10 @@ const ListClass = () => {
           <div className="w-full sm:w-48">
             <Select
               value={type ?? ""}
-              options={typeOptions}
+              options={[
+                { label: "Tất cả loại gói", value: "" },
+                ...typeOptions,
+              ]}
               onChange={(value) => {
                 setPage(1);
                 setType(value || null);

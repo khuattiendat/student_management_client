@@ -1,7 +1,8 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   App,
   Button,
+  Input,
   Modal,
   Popconfirm,
   Table,
@@ -17,7 +18,7 @@ import {
   generalProgramOptions,
   typeOptions,
 } from "../package/packageFormOptions";
-import { EditOutlined } from "@ant-design/icons";
+import { EditOutlined, ReloadOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
@@ -82,6 +83,8 @@ const normalizeEnrollmentRows = (detail = {}) => {
 
 const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
   const { message } = App.useApp();
+  const [editingPackageId, setEditingPackageId] = useState(null);
+  const [inputValue, setInputValue] = useState("");
 
   const swrKey = open && student?.id ? ["student-remaining", student.id] : null;
 
@@ -119,6 +122,36 @@ const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
       message.error(
         error?.response?.data?.message ||
           "Cập nhật trạng thái đóng tiền thất bại",
+      );
+    }
+  };
+  const handleUpdateRemainingSessions = async (record) => {
+    try {
+      if (!inputValue || isNaN(inputValue)) {
+        message.error("Vui lòng nhập số buổi hợp lệ");
+        return;
+      }
+
+      const enrollment = data?.enrollments?.find(
+        (enroll) => enroll.packageId === record.packageId,
+      );
+      if (!enrollment) {
+        message.error(
+          "Không tìm thấy enrollment tương ứng để cập nhật số buổi còn lại.",
+        );
+        return;
+      }
+      await studentService.updateRemainingSessions(
+        enrollment.id,
+        Number(inputValue),
+      );
+      message.success("Cập nhật số buổi còn lại thành công");
+      setEditingPackageId(null);
+      setInputValue("");
+      mutate();
+    } catch (error) {
+      message.error(
+        error?.response?.data?.message || "Cập nhật số buổi còn lại thất bại",
       );
     }
   };
@@ -234,6 +267,36 @@ const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
                 <Button type="text" icon={<EditOutlined />} />
               </Tooltip>
             </Popconfirm>
+            <Popconfirm
+              title="Sửa số buổi còn lại"
+              description={
+                <div>
+                  <Input
+                    type="number"
+                    placeholder="Nhập số buổi"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+              }
+              okText="Xác nhận"
+              cancelText="Hủy"
+              onOpenChange={(visible) => {
+                if (visible) {
+                  setEditingPackageId(record.packageId);
+                  setInputValue(record.remainingSessions.toString());
+                } else {
+                  setEditingPackageId(null);
+                  setInputValue("");
+                }
+              }}
+              onConfirm={() => handleUpdateRemainingSessions(record)}
+            >
+              <Tooltip title="Chỉnh sửa số buổi còn lại">
+                <Button type="text" icon={<ReloadOutlined />} />
+              </Tooltip>
+            </Popconfirm>
           </>
         );
       },
@@ -247,7 +310,7 @@ const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
       onCancel={onClose}
       footer={null}
       centered
-      width={900}
+      width={1200}
       destroyOnHidden
     >
       <Table

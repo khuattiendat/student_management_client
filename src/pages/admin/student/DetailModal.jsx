@@ -29,8 +29,6 @@ const DetailModal = ({
   packageOptions = [],
   onUpdated,
 }) => {
-  console.log(detailStudent);
-
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);

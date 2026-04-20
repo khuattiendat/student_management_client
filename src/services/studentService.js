@@ -65,6 +65,15 @@ const studentService = {
     ),
   updateEnrollments: (id, data) =>
     axiosInstance.put(`/students/${id}/enrollments`, data),
+
+  updateRemainingSessions: (enrollmentId, remainingSessions) => {
+    axiosInstance.put(
+      `/students/enrollments/${enrollmentId}/remaining-sessions`,
+      {
+        remainingSessions: remainingSessions,
+      },
+    );
+  },
 };
 
 export default studentService;

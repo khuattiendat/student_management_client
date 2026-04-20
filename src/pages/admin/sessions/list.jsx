@@ -66,24 +66,10 @@ const AttendanceNoteInput = memo(function AttendanceNoteInput({
   );
 });
 
-const getAttendanceWindowState = (sessionDateValue) => {
-  const today = dayjs().startOf("day");
-  const sessionDay = dayjs(sessionDateValue).startOf("day");
-
-  if (!sessionDay.isValid()) {
-    return { canTakeAttendance: false };
-  }
-
-  const diffInDays = sessionDay.diff(today, "day");
-
-  return {
-    canTakeAttendance: diffInDays === 0 || diffInDays === 1,
-  };
-};
-
 const SessionList = () => {
   const userRole = useAuthStore((s) => s.user?.role);
   const canManager = [ROLES.ADMIN, ROLES.TEACHER].includes(userRole);
+  const isAdmin = userRole === ROLES.ADMIN;
   const { message } = App.useApp();
   const [page, setPage] = useState(1);
   const limit = 10;
@@ -173,6 +159,21 @@ const SessionList = () => {
   );
   const totalSessions = sessionListData?.pagination?.total ?? 0;
   const tableLoading = sessionsLoading || sessionsValidating;
+
+  const getAttendanceWindowState = (sessionDateValue) => {
+    const today = dayjs().startOf("day");
+    const sessionDay = dayjs(sessionDateValue).startOf("day");
+
+    if (!sessionDay.isValid()) {
+      return { canTakeAttendance: false };
+    }
+
+    const diffInDays = sessionDay.diff(today, "day");
+
+    return {
+      canTakeAttendance: diffInDays === 0 || diffInDays === 1 || isAdmin,
+    };
+  };
 
   const openAttendanceModal = async (sessionRecord) => {
     const { canTakeAttendance } = getAttendanceWindowState(
