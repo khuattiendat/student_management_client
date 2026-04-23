@@ -18,7 +18,13 @@ import {
   generalProgramOptions,
   typeOptions,
 } from "../package/packageFormOptions";
-import { EditOutlined, ReloadOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
+import useAuthStore from "../../../store/authStore";
+import { ROLES } from "../../../utils/constants";
 
 const { Text } = Typography;
 
@@ -82,8 +88,9 @@ const normalizeEnrollmentRows = (detail = {}) => {
 };
 
 const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
+  const userRole = useAuthStore((s) => s.user?.role);
+  const isAdmin = userRole === ROLES.ADMIN;
   const { message } = App.useApp();
-  const [editingPackageId, setEditingPackageId] = useState(null);
   const [inputValue, setInputValue] = useState("");
 
   const swrKey = open && student?.id ? ["student-remaining", student.id] : null;
@@ -146,7 +153,6 @@ const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
         Number(inputValue),
       );
       message.success("Cập nhật số buổi còn lại thành công");
-      setEditingPackageId(null);
       setInputValue("");
       mutate();
     } catch (error) {
@@ -155,6 +161,21 @@ const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
       );
     }
   };
+  const handleDeletePackage = async (record) => {
+    try {
+      const enrollmentId = record?.id;
+      if (!enrollmentId) {
+        message.error("Không tìm thấy enrollment tương ứng để xóa.");
+        return;
+      }
+      await studentService.deleteEnrollment(enrollmentId);
+      message.success("Xóa gói học thành công");
+      mutate();
+    } catch (error) {
+      message.error(error?.response?.data?.message || "Xóa gói học thất bại");
+    }
+  };
+  ``;
 
   useEffect(() => {
     if (error) {
@@ -267,36 +288,49 @@ const StudentRemainingSessionsModal = ({ open, onClose, student }) => {
                 <Button type="text" icon={<EditOutlined />} />
               </Tooltip>
             </Popconfirm>
-            <Popconfirm
-              title="Sửa số buổi còn lại"
-              description={
-                <div>
-                  <Input
-                    type="number"
-                    placeholder="Nhập số buổi"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    autoFocus
-                  />
-                </div>
-              }
-              okText="Xác nhận"
-              cancelText="Hủy"
-              onOpenChange={(visible) => {
-                if (visible) {
-                  setEditingPackageId(record.packageId);
-                  setInputValue(record.remainingSessions.toString());
-                } else {
-                  setEditingPackageId(null);
-                  setInputValue("");
-                }
-              }}
-              onConfirm={() => handleUpdateRemainingSessions(record)}
-            >
-              <Tooltip title="Chỉnh sửa số buổi còn lại">
-                <Button type="text" icon={<ReloadOutlined />} />
-              </Tooltip>
-            </Popconfirm>
+            {isAdmin && (
+              <>
+                <Popconfirm
+                  title="Sửa số buổi còn lại"
+                  description={
+                    <div>
+                      <Input
+                        type="number"
+                        placeholder="Nhập số buổi"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        autoFocus
+                      />
+                    </div>
+                  }
+                  okText="Xác nhận"
+                  cancelText="Hủy"
+                  onOpenChange={(visible) => {
+                    if (visible) {
+                      setInputValue(record.remainingSessions.toString());
+                    } else {
+                      setInputValue("");
+                    }
+                  }}
+                  onConfirm={() => handleUpdateRemainingSessions(record)}
+                >
+                  <Tooltip title="Chỉnh sửa số buổi còn lại">
+                    <Button type="text" icon={<ReloadOutlined />} />
+                  </Tooltip>
+                </Popconfirm>
+                <Popconfirm
+                  title="Xóa gói học"
+                  description={`Bạn có chắc muốn xóa gói "${record.packageName}"?`}
+                  okText="Xác nhận"
+                  cancelText="Hủy"
+                  onConfirm={() => handleDeletePackage(record)}
+                >
+                  <Tooltip title="Xóa gói học">
+                    <Button type="text" danger icon={<DeleteOutlined />} />
+                  </Tooltip>
+                </Popconfirm>
+              </>
+            )}
           </>
         );
       },

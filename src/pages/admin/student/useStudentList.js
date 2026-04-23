@@ -32,6 +32,10 @@ export function useStudentList() {
     "isTexted",
     parseAsString.withDefault(""),
   );
+  const [isPaid, setIsPaid] = useQueryState(
+    "isPaid",
+    parseAsString.withDefault(""),
+  );
   const [packageType, setPackageType] = useQueryState(
     "packageType",
     parseAsString.withDefault(""),
@@ -52,6 +56,7 @@ export function useStudentList() {
     isTexted,
     packageType,
     birthMonth,
+    isPaid,
   ];
 
   const { data, error, isLoading, isValidating, mutate } = useSWR(
@@ -68,6 +73,9 @@ export function useStudentList() {
       }
       if (isTexted !== undefined && isTexted !== "") {
         params.isTexted = Number(isTexted);
+      }
+      if (isPaid !== undefined && isPaid !== "") {
+        params.isPaid = Number(isPaid);
       }
 
       const response = await studentService.list(params);
@@ -125,6 +133,8 @@ export function useStudentList() {
     setPackageType,
     birthMonth,
     setBirthMonth,
+    isPaid,
+    setIsPaid,
     mutate,
   };
 }

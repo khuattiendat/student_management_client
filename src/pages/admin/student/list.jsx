@@ -29,6 +29,11 @@ import Heading from "../../../components/common/Heading";
 import { typeOptions } from "../package/packageFormOptions";
 
 const { Title } = Typography;
+const isPaidOptions = [
+  { label: "Tất cả trạng thái thanh toán", value: "" },
+  { label: "Đã thanh toán", value: 1 },
+  { label: "Chưa thanh toán", value: 0 },
+];
 const calledOptions = [
   { label: "Thông báo gọi điện", value: "" },
   { label: "Đã gọi", value: 1 },
@@ -139,6 +144,8 @@ const ListStudent = () => {
     setPackageType,
     birthMonth,
     setBirthMonth,
+    isPaid,
+    setIsPaid,
   } = useStudentList();
 
   const userRole = useAuthStore((s) => s.user?.role);
@@ -493,6 +500,7 @@ const ListStudent = () => {
     setIsTexted(null);
     setPackageType(null);
     setBirthMonth(null);
+    setIsPaid(null);
     setPage(1);
   };
 
@@ -635,6 +643,18 @@ const ListStudent = () => {
               onChange={(value) => {
                 setPage(1);
                 setIsTexted(value);
+              }}
+              className="w-full"
+            />
+          </div>
+          {/* isPaid */}
+          <div className="w-full sm:w-56">
+            <Select
+              value={isPaid ?? ""}
+              options={isPaidOptions}
+              onChange={(value) => {
+                setPage(1);
+                setIsPaid(value);
               }}
               className="w-full"
             />

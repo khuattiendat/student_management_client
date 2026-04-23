@@ -238,6 +238,7 @@ const RenewCourseModal = ({
     try {
       await studentService.renewCourse(student.id, {
         packageIds: values.packageIds ?? [],
+        isPaid: values.isPaid,
       });
 
       message.success("Gia hạn khóa học thành công");

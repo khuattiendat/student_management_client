@@ -74,6 +74,8 @@ const studentService = {
       },
     );
   },
+  deleteEnrollment: (enrollmentId) =>
+    axiosInstance.delete(`/students/enrollments/${enrollmentId}`),
 };
 
 export default studentService;

@@ -27,8 +27,11 @@ import {
   toMin,
   TYPE_CONFIG,
 } from "./util";
+import useAuthStore from "../../store/authStore";
+import { ROLES } from "../../utils/constants";
 
 export default function WeeklySchedule() {
+  const userRole = useAuthStore((s) => s.user?.role);
   const { message } = App.useApp();
   const [selected, setSelected] = useState(null);
   const [colW, setColW] = useState(120);
@@ -59,12 +62,15 @@ export default function WeeklySchedule() {
   useEffect(() => {
     if (!branchOptions.length) return;
     if (selectedBranchId !== null) return;
+    if (userRole === ROLES.TEACHER) return;
     setSelectedBranchId(branchOptions[branchOptions.length - 1].value);
-  }, [branchOptions, selectedBranchId, setSelectedBranchId]);
+  }, [branchOptions, selectedBranchId, setSelectedBranchId, userRole]);
 
-  const canFetchCalendar =
-    !isBranchOptionsLoading &&
-    (branchOptions.length === 0 || selectedBranchId !== null);
+  // const canFetchCalendar =
+  //   !isBranchOptionsLoading &&
+  //   (branchOptions.length === 0 || selectedBranchId !== null);
+
+  const canFetchCalendar = !isBranchOptionsLoading;
 
   const {
     data: calendarData,
