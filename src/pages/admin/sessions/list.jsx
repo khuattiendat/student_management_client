@@ -18,21 +18,15 @@ import {
   Typography,
 } from "antd";
 import {
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  CloseCircleOutlined,
   DeleteOutlined,
   HomeOutlined,
   LeftOutlined,
   RightOutlined,
-  WarningOutlined,
-  XFilled,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import classService from "../../../services/classService";
 import sessionService from "../../../services/sessionService";
 import { getWeek } from "../../calendar/util";
-import { AiOutlineDelete } from "react-icons/ai";
 import useAuthStore from "../../../store/authStore";
 import BackButton from "../../../components/common/BackButton";
 import { ROLES } from "../../../utils/constants";
@@ -362,8 +356,9 @@ const SessionList = () => {
 
               if (!config) return null;
 
+              const IconComponent = config.icon;
               return (
-                <Tag key={status} color={config.color} icon={config.icon}>
+                <Tag key={status} color={config.color} icon={<IconComponent />}>
                   {config.text}: {count}
                 </Tag>
               );
@@ -520,8 +515,9 @@ const SessionList = () => {
           return <Tag>{row.status || "—"}</Tag>;
         }
 
+        const IconComponent = statusConfig.icon;
         return (
-          <Tag color={statusConfig.color} icon={statusConfig.icon}>
+          <Tag color={statusConfig.color} icon={<IconComponent />}>
             {statusConfig.text}
           </Tag>
         );

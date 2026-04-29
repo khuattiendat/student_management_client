@@ -8,32 +8,32 @@ import {
 export const statusTagConfig = {
   present: {
     color: "green",
-    icon: <CheckCircleOutlined />,
+    icon: CheckCircleOutlined,
     text: "Có mặt",
   },
   late: {
     color: "orange",
-    icon: <ClockCircleOutlined />,
+    icon: ClockCircleOutlined,
     text: "Đi muộn",
   },
   unexcused_absent: {
     color: "red",
-    icon: <CloseCircleOutlined />,
+    icon: CloseCircleOutlined,
     text: "Nghỉ không phép",
   },
   late_cancel_absent: {
     color: "volcano",
-    icon: <WarningOutlined />,
+    icon: WarningOutlined,
     text: "Báo nghỉ sát giờ",
   },
   unjustified_leave: {
     color: "magenta",
-    icon: <WarningOutlined />,
+    icon: WarningOutlined,
     text: "Nghỉ có phép nhưng không chính đáng",
   },
   excused_absent: {
     color: "blue",
-    icon: <CheckCircleOutlined />,
+    icon: CheckCircleOutlined,
     text: "Nghỉ có phép chính đáng",
   },
 };

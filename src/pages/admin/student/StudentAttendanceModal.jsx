@@ -4,12 +4,6 @@ import dayjs from "dayjs";
 import useSWR from "swr";
 import studentService from "../../../services/studentService";
 import { ATTENDANCE_STATUS_SUGGESTIONS } from "../sessions/const";
-import {
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  CloseCircleOutlined,
-  WarningOutlined,
-} from "@ant-design/icons";
 import { statusTagConfig } from "./statusConfig";
 
 const { Text } = Typography;
@@ -99,10 +93,18 @@ const StudentAttendanceModal = ({ open, onClose, student }) => {
         dataIndex: "status",
         render: (status) => {
           const config = statusTagConfig[String(status || "").toLowerCase()];
-          return config ? (
-            <Tag color={config.color}>{config.text}</Tag>
-          ) : (
-            <Tag>{status || "—"}</Tag>
+          if (!config) {
+            return <Tag>{status || "—"}</Tag>;
+          }
+
+          const IconComponent = config.icon;
+          return (
+            <Tag
+              color={config.color}
+              icon={<IconComponent style={{ marginRight: 4 }} />}
+            >
+              {config.text}
+            </Tag>
           );
         },
       },
