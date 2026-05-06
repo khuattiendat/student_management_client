@@ -222,48 +222,44 @@ export const buildColumns = ({
     render: (_, record) => {
       return (
         <Space>
-          {!canManage ? (
-            <div className="flex items-center gap-2">
-              <Tooltip title="Đã nhắn tin">
-                <div className="flex items-center gap-1">
-                  <MessageOutlined />
-                  <Input
-                    type="checkbox"
-                    className="cursor-pointer"
-                    checked={record.isTexted}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onUpdateNotifications(
-                        record.id,
-                        "isTexted",
-                        !record.isTexted,
-                      );
-                    }}
-                  />
-                </div>
-              </Tooltip>
-              <Tooltip title="Đã gọi điện">
-                <div className="flex items-center gap-1">
-                  <PhoneOutlined />
-                  <Input
-                    type="checkbox"
-                    className="cursor-pointer"
-                    checked={record.isCalled}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onUpdateNotifications(
-                        record.id,
-                        "isCalled",
-                        !record.isCalled,
-                      );
-                    }}
-                  />
-                </div>
-              </Tooltip>
-            </div>
-          ) : (
-            "—"
-          )}
+          <div className="flex items-center gap-2">
+            <Tooltip title="Đã nhắn tin">
+              <div className="flex items-center gap-1">
+                <MessageOutlined />
+                <Input
+                  type="checkbox"
+                  className="cursor-pointer"
+                  checked={record.isTexted}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdateNotifications(
+                      record.id,
+                      "isTexted",
+                      !record.isTexted,
+                    );
+                  }}
+                />
+              </div>
+            </Tooltip>
+            <Tooltip title="Đã gọi điện">
+              <div className="flex items-center gap-1">
+                <PhoneOutlined />
+                <Input
+                  type="checkbox"
+                  className="cursor-pointer"
+                  checked={record.isCalled}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdateNotifications(
+                      record.id,
+                      "isCalled",
+                      !record.isCalled,
+                    );
+                  }}
+                />
+              </div>
+            </Tooltip>
+          </div>
         </Space>
       );
     },
